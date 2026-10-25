@@ -122,10 +122,10 @@ function render(source) {
 function shell(title, content, description = homeDescription, source = null, stylesheets = [], section = '') {
   const home = section === 'home';
   const active = section || (source?.startsWith('projects/') ? 'blog' : source === 'docs/WORKS.md' ? 'works' : source === 'docs/AGENT_ART.md' ? 'agent-art' : source === 'docs/PROTOCOL.md' ? 'protocol' : source === 'docs/ASK_YOUR_AGENT.md' ? 'ask-your-agent' : '');
-  const navigation = [['agent-art', 'Agent Art'], ['protocol', 'Protocol'], ['works', 'Works'], ['blog', 'Blog']]
+  const navigation = [['agent-art', 'Agent Art'], ['protocol', 'Protocol'], ['works', 'Works']]
     .map(([route, label]) => `<a href="${url(`${route}/index.html`)}"${active === route ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   const homeLinks = position => `<section class="home-links" aria-label="${position === 'top' ? 'Top navigation' : 'Bottom navigation'}">
-<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation.replace(`href="${url('blog/index.html')}"`, `${home && position === 'top' ? 'id="articles" ' : ''}href="${url('blog/index.html')}"`)}<a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a></nav>
+<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation}<a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a></nav>
 </section>`;
   return `<!doctype html>
 <html lang="en" data-font="pt-mono" data-weight="400" data-texture="dots"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -140,7 +140,7 @@ ${source ? `<link rel="alternate" type="application/json" title="Complete docume
 <header class="global-top ${home ? 'manifesto-top' : 'site-header'}"><a class="brand" href="${url('index.html')}" aria-label="Agent Art Work home"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span></a>${homeLinks('top')}</header>
 <main id="main">${content}</main>
 <section class="site-reading" id="reading-heading" aria-label="Ask your Agent"><div class="site-agent-reading"><div id="ask-your-agent"></div></div>${promptDisclosure}</section>
-<footer class="site-footer"><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
+<footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
 <a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
 </nav></footer>${readingScripts}</body></html>\n`;

@@ -140,6 +140,24 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-10-25 operator authorized committing, pushing and deploying the top-bar
+  Blog removal. Website-maintenance release scope is the reviewed navigation
+  change below, with footer access and legacy fragments preserved. Require CI
+  on the reviewed PR head, then verify Pages deployment and the live top/footer
+  navigation. The release PR records the final deployment result; no content,
+  design, SDK or historical-record revision is included.
+
+- 2026-10-25 website maintenance, **local only**: removed Blog from the global
+  top bar. It remains in the footer; pages, article URLs and historical records
+  are unchanged. The legacy home `/#articles` fragment now reaches the footer's
+  Blog link; `/blog/#articles` still reaches the feed. Top navigation is Agent
+  Art, Protocol, Works, GitHub and X. All 16 existing Blog/page tests and the
+  32-page / 1,031-link site check pass. Stable Chrome checks at 1440px and 320px
+  confirm the five links, retained footer access and no horizontal overflow;
+  screenshots inspected and owned QA browsers closed. Manifesto and design
+  sources are unchanged. Preview is rebuilt at `http://127.0.0.1:8877/`.
+  No commit, push or deployment for this change. Next: local operator review.
+
 - 2026-10-25 operator authorized committing, pushing and deploying the cache
   compatibility changes and X links to agentart.work. Website-maintenance
   release lane: publish the reviewed candidate through a PR, require checks on

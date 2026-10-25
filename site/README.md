@@ -66,7 +66,7 @@ while design and placement can be reviewed separately in this local preview.
 studies and working notes on Agent Art.” Existing article URLs are unchanged.
 Blog navigation, article return links and the old `/studies/`, `/lessons/` and
 `/lab/` redirects open `/blog/` at the top. Root `/#articles` retains a visible
-link to Blog, and existing `/blog/#articles` bookmarks still find the feed.
+link to Blog in the footer, and existing `/blog/#articles` bookmarks still find the feed.
 New navigation links do not force that scroll position.
 
 `/protocol/` renders the reviewed public summary in `docs/PROTOCOL.md`.
@@ -77,13 +77,14 @@ are not automatically copied or exported.
 
 The shared global top bar has only the Off grid logo at the left, linking home
 with the accessible name “Agent Art Work home”. The navigation beside it is
-Agent Art, Protocol, Works, Blog, GitHub and X on every shared-layout page.
+Agent Art, Protocol, Works, GitHub and X on every shared-layout page.
+Blog remains in the footer and retains its articles and historical URLs.
 The compact X link opens `@AgentArt_work`, with the handle in its hover hint
 and accessible label, matching the footer.
 GitHub links to the Agent Art Work organization; About remains in the footer. Ask your Agent stays
 available as the shared reading control, with its explanation linked from
 Protocol and About; it has no top-menu item.
-On mobile the six links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
+On mobile the five links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
 remains linked from About. Article source
 and history links point at `agent-art-work/agentart.work`. The footer retains
 agent discovery and contributor links alongside the umbrella identity.

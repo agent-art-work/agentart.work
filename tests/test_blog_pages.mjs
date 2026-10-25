@@ -119,7 +119,7 @@ test('the homepage is the complete locked manifesto with shared footer and refer
   assert.equal(groups.length, 1);
   for (const group of groups) assert.equal(elements(group.inner, 'h2').length, 0);
   assert.equal(elements(top.inner, 'nav', 'home-reference').length, 0);
-  assert.equal(elements(top.inner, 'a').length, 7);
+  assert.equal(elements(top.inner, 'a').length, 6);
   const homeBrand = one(top.inner, 'a', 'brand');
   assert.equal(text(homeBrand.inner), '');
   assert.equal(homeBrand.attrs['aria-label'], 'Agent Art Work home');
@@ -152,9 +152,9 @@ test('the homepage is the complete locked manifesto with shared footer and refer
     assert.ok(elements(ask.inner, 'a').some(link => link.attrs.href === destination && text(link.inner) === label),
       `Ask your Agent preserves ${label}`);
   }
-  const bridge = elements(top.inner, 'a').filter(item => item.attrs.id === 'articles');
-  assert.equal(bridge.length, 1, 'old /#articles links have a visible destination');
-  assert.equal(bridge[0].attrs.href, `${base}/blog/`);
+  assert.equal(bottom.attrs.id, 'articles', 'old /#articles links reach the footer');
+  assert.ok(elements(bottom.inner, 'a').some(item => item.attrs.href === `${base}/blog/`),
+    'the legacy fragment preserves a visible Blog link');
   assert.equal(one(homepage, 'section', 'site-reading').attrs.id, 'reading-heading');
   assert.ok(homepage.includes('title="Complete document"'), 'home advertises its canonical source download');
 });
@@ -324,10 +324,10 @@ test('Agent Art Work navigation and the shared reading utility serve every site 
       const links = elements(navigation[0].inner, 'a');
       assert.deepEqual(links.map(link => link.attrs.href), [
         `${base}/agent-art/`, `${base}/protocol/`,
-        `${base}/works/`, `${base}/blog/`, 'https://github.com/agent-art-work', 'https://x.com/AgentArt_work',
+        `${base}/works/`, 'https://github.com/agent-art-work', 'https://x.com/AgentArt_work',
       ], file);
       assert.deepEqual(links.map(link => text(link.inner)),
-        ['Agent Art', 'Protocol', 'Works', 'Blog', 'GitHub', 'X'], file);
+        ['Agent Art', 'Protocol', 'Works', 'GitHub', 'X'], file);
       const brand = one(one(page, 'header', 'site-header').inner, 'a', 'brand');
       assert.equal(brand.attrs.href, `${base}/`, file);
       assert.equal(brand.attrs['aria-label'], 'Agent Art Work home', file);

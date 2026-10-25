@@ -1,17 +1,22 @@
 # Agent Art Work handoff
 
-The Agent Art manifesto text is **locked for the v2 local preview** following
-operator approval. The current objective is review of the refined website:
-manifesto-led home, the complete declaration, a separate definition and
-explanation, Blog, Protocol and Ask your Agent. The Works showroom begins with Inshell’s THOUGHT, WILL and AWA,
-with attribution and explicit current-practice/study distinctions. The operator authorized an **agentart.work v2 release candidate** and production
-rollout on 2026-10-24. Earlier local-only entries below describe prior stages. This repository owns the complete website;
-the protocol repository retains SDK implementation and release ownership.
+[Agent Art Work v2.0.0](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0)
+is the stable website release, published on 2026-10-25 at commit
+`34eb92745d39e192f16719f7a6926784f697592d` and deployed at
+[agentart.work](https://agentart.work/). The approved manifesto remains locked.
+The released site includes the manifesto-led home, separate definition, Works
+showroom, Protocol, Ask your Agent, About and Blog. Blog remains in the footer;
+the top bar contains Agent Art, Protocol, Works, GitHub and X.
+
+This repository owns website maintenance and Blog publishing. The separate
+protocol repository retains SDK implementation and release ownership; its
+bundled SDK remains `0.1.5-alpha.2`. Earlier candidate and local-only entries
+below describe prior stages, not outstanding release work.
 
 ## Read first
 
 1. [README](README.md) and [AGENTS](AGENTS.md): purpose, work lanes and authority.
-2. [Current position](#current-position): latest local work and remaining limits.
+2. [Current position](#current-position): released baseline, current work and remaining limits.
 3. Current sections of [organization context](docs/ORGANIZATION_AND_SPLIT.md):
    website, Protocol and artist ownership.
 
@@ -28,6 +33,10 @@ it does not make every website edit a new full audit. Preserve records and URLs.
 Local preview work remains local until publication is authorized.
 
 ## Independent cross-site boundary review — 2026-10-24
+
+Historical audit brief: the candidate paths and publication status below describe
+2026-10-24. Agent Art Work has since released v2.0.0; this does not establish
+Inshell's deployment status or authorize resuming the audit.
 
 The operator requests a handoff for a standalone agent to independently audit
 the **local** Agent Art Work v2 site and the reconciled Inshell docs. Lane:
@@ -139,6 +148,27 @@ Work v2 destinations before Inshell's new cross-site links are released, under
 the respective maintainers' release authority.
 
 ## Current position
+
+- 2026-10-25 **stable v2.0.0 released**: the annotated tag and latest stable
+  [GitHub release](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0)
+  point to `34eb92745d39e192f16719f7a6926784f697592d`, merged through
+  [PR #15](https://github.com/agent-art-work/agentart.work/pull/15).
+  [GitHub Pages deployment](https://github.com/agent-art-work/agentart.work/actions/runs/40187241940)
+  succeeded. Release validation passed 70 Python and 35 Node tests, source
+  packaging checks and site checks for 32 pages / 1,031 local links. All 92
+  served files matched the build; all 24 Agent exports and three retained
+  compatibility routes passed verification. Live stable Chrome at 1440px/light
+  and 320px/dark confirmed top/footer navigation, preserved article fragments
+  and no horizontal overflow or failed page requests; screenshots were inspected.
+  The approved manifesto, design and historical records are unchanged.
+  `codex/blog-footer-navigation` was deleted locally and remotely after merge.
+  The website's stable designation does not promote the `0.1.5-alpha.2` SDK;
+  reading compatibility retains one prior SDK and at most two prior reading
+  integrations, not arbitrary old caches. No new receiving-app or artwork trial
+  was performed. The operator requested this README/HANDOFF documentation update
+  as a follow-up commit; keep the v2.0.0 tag fixed at the released revision.
+  No release blocker remains. Next: maintain the stable site under the requested
+  work lane; earlier local review/release instructions below are historical.
 
 - 2026-10-25 operator authorized committing, pushing and deploying the top-bar
   Blog removal. Website-maintenance release scope is the reviewed navigation

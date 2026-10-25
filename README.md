@@ -18,13 +18,19 @@ these and other artists' works with attribution; Blog remains the publication
 for articles and studies. Artwork ownership and operation stay with the artists.
 See the [ownership boundary](docs/ORGANIZATION_AND_SPLIT.md#source-of-truth-and-builder-artists-2026-10-23).
 
-**The v2 direction:** Agent Art Work is the umbrella; **Blog** replaces the Lab
-as the public publication section. The existing repository is renamed from
+**Stable release:** [v2.0.0](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0)
+was published on 2026-10-25 at commit `34eb927` and is deployed at
+[agentart.work](https://agentart.work/). The approved manifesto, definition,
+Works showroom, Protocol and Ask your Agent are part of the released website.
+Blog remains accessible in the footer, preserving its articles and historical URLs.
+The website release is stable; the bundled Protocol SDK remains `0.1.5-alpha.2`.
+See [current status](HANDOFF.md#current-position) for verification and follow-up work.
+
+Agent Art Work is the umbrella; **Blog** replaces the Lab as the public
+publication section. The repository was renamed from
 `Agent-Art-Lab` to `agentart.work`, retaining its contribution history, articles
 and evidence records. Historical Lab names and stable document identities stay
-intact. See [handoff](HANDOFF.md) for implementation and deployment status;
-v2 is approved for a production release candidate; see GitHub releases for
-the deployed revision.
+intact.
 
 The website presents these Markdown sources as readable pages and complete,
 verifiable agent downloads. See [site maintenance](site/README.md) for its build

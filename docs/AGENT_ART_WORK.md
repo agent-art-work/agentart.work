@@ -54,6 +54,8 @@ This site began as Agent-Art-Lab. Blog carries its articles, collections and
 source history forward. Findings remain bounded by their evidence; missing or
 private material stays identified.
 
+Follow [@AgentArt_work on X](https://x.com/AgentArt_work).
+
 ## Our logo
 
 ![Agent Art Work: eight points on the background grid and one displaced amber-gold point.](../site/assets/logo.svg)

@@ -140,6 +140,87 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-10-25 operator authorized committing, pushing and deploying the cache
+  compatibility changes and X links to agentart.work. Website-maintenance
+  release lane: publish the reviewed candidate through a PR, require checks on
+  its exact head, then verify the GitHub Pages deployment and live file bytes,
+  legacy query routes, current module graph and Agent exports. The approved
+  design, manifesto, invitation, SDK release and dependency lock stay unchanged.
+  No live Agent Send or separate Protocol release is included. Earlier local-only
+  entries below record completed preparation; the release PR records the final
+  deployment outcome and evidence.
+
+- 2026-10-25 website maintenance, **local only**: extended the existing
+  `codex/sdk-cache-retention` change to resolve old HTML with a missing adapter,
+  and old adapters with a missing Work. New adapter/Work URLs use SHA-256
+  filenames. The legacy query URLs route only to the exact pinned snapshots
+  from deployed `f41ca7f` and `122d703`; unknown hashes leave the manual prompt
+  available. Reading retention is current plus at most two prior distinct
+  integrations, coordinated with the current/previous SDK retention. See
+  [site maintenance](site/README.md#reading-entries-across-an-upgrade) for
+  snapshot identities, rotation and release checks. The earlier partial-cache
+  limitation below is resolved for these retained graphs, not arbitrary old
+  assets or bytes already cached incorrectly.
+  Stable Chrome 156 passed all four selective-cache transitions (both releases,
+  each with adapter+Work absent or Work alone absent), with actual HTML/cache
+  evidence, matching SDK CSS/modules and exact invitation bytes. The fixture
+  first reproduced old flat-label CSS with current alpha.2 JavaScript before
+  applying the fix. Fresh 1440px/light and 320px/dark pages use only alpha.2;
+  Copy/Copied dimensions, synthetic Copy, selected manual fallback, canceled
+  native payloads and no-JavaScript fallback pass. Screenshots inspected.
+  All 70 Python and 35 Node tests pass, including distinct old/new Work content,
+  missing/mutated snapshots and rejected unknown hashes. Site checks pass for
+  32 pages, 93 public files and 1,062 local links. Evidence is retained locally
+  under `local/qa/mixed-cache/`; owned QA browsers, profiles and servers closed.
+  Added the operator-supplied X handle `@AgentArt_work`: top and footer links, About link
+  and shared `twitter:site` metadata. Design CSS, SDK/archive/lock, invitation,
+  manifesto and historical records remain unchanged. **Uncommitted; no push,
+  PR, merge, deployment or live Agent Send.** Independent local review found
+  no blockers. The review preview is running at `http://127.0.0.1:8877/`;
+  the served About page's X handle and immutable reading entry were verified.
+  Next: local operator review.
+
+- 2026-10-25 website maintenance, **local only** on
+  `codex/sdk-cache-retention`: the build now retains one explicitly pinned
+  predecessor SDK alongside current `0.1.5-alpha.2`. The deployed upgrade removed
+  the `0.1.5-flat-label.1` paths; the Protocol maintainer reported a 404 for the
+  old stylesheet with a 600-second cache lifetime. No user-visible failure was
+  observed. Retention restores the five complete old browser files from the
+  original 16,803-byte archive, SHA-256
+  `be292abbca9f934dbc75e4bbe6f544011251043a75a89de608f8cbb8c60d02ea`,
+  plus its unchanged README. It has no license file; the current SDK's MIT
+  notice remains attached only to its own version. Package/lock, current SDK,
+  design, invitation and manifesto are unchanged. See the bounded rotation
+  policy and partial-cache limitation in [site maintenance](site/README.md#sdk-assets-across-an-upgrade).
+  Stable Chrome 156 at 1440px verified actual disk-cache hits for old HTML,
+  adapter and Work in a fresh tab, while all five old SDK files came over HTTP
+  from the switched new build. A controlled missing-directory phase reproduced
+  the old CSS/module 404s and retained the manual prompt. Fresh current HTML
+  loaded only alpha.2. Both intact graphs mounted once and preserved exact
+  synthetic Copy, selected manual fallback and canceled native URL payloads;
+  no-JavaScript fallback also passed. Screenshots inspected. The fixture used
+  SDK `no-store` responses to model selective cache absence, not ordinary
+  eviction rates or a live user incident. Owned browser, profile and server
+  closed; evidence retained locally under `local/qa/sdk-cache-transition/`.
+  All 56 Python and 31 Node tests pass, along with source packaging and the
+  32-page / 89-file / 1,062-link site check. A clean build of the deployed base
+  confirms all 83 original output files remain byte-identical; the only six
+  additions are the retained assets and README. Independent local review found
+  no blockers within this scope.
+  **No commit, push, PR, merge or deployment.** Next: review the local change;
+  release needs separate authorization, then CI and HTTP byte verification of
+  both SDK directories. Fixed-filename adapter cache misses remain a documented
+  limitation, not solved by versioned SDK retention alone.
+
+- 2026-10-24 SDK `0.1.5-alpha.2` rollout completed through
+  [PR #13](https://github.com/agent-art-work/agentart.work/pull/13), merge
+  `122d70350d0088001694dafef1e84c66ffc6f7a1`.
+  [Deployment](https://github.com/agent-art-work/agentart.work/actions/runs/40094661246)
+  succeeded. The release qualification recorded 82 served files matching the
+  build, 24 verified Agent documents, seven canonical routes, and live stable
+  Chrome checks at 1440px/light and 320px/dark. Earlier local-only integration
+  notes below are retained history, superseded by this deployment result.
+
 - 2026-10-24 operator authorized committing, pushing and deploying the verified
   SDK `0.1.5-alpha.2` integration to agentart.work. Publish through a reviewed
   website PR, require CI on the exact head, then verify the deployed browser

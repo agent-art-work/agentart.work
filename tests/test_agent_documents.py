@@ -31,6 +31,9 @@ class AgentDocumentFixture:
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
         self.put("site/studies.json", b"[]\n")
+        self.put("site/sdk-asset-retention.json", serialized({
+            "policy": "current-and-one-predecessor", "previous": [],
+        }))
         self.put("_site/.nojekyll", b"")
         self.put("_site/style.css", b"body { color: black; }\n")
         self.entries = []
@@ -91,6 +94,12 @@ class AgentDocumentChecks(AgentDocumentFixture, unittest.TestCase):
     def test_intact_fixture_passes_both_checkers(self):
         self.assertEqual(self.errors(), [])
         self.assertEqual(check_site(self.root, BASE)[0], [])
+
+    def test_unlisted_sdk_version_is_rejected_even_for_css(self):
+        for name in ("reading.css", "reading-ui.mjs"):
+            target = f"assets/agent-art-sdk/0.0.0/{name}"
+            self.put(f"_site/{target}", b"/* unlisted SDK */\n")
+            self.assertIn(f"unlisted SDK output file: {target}", check_site(self.root, BASE)[0])
 
     def test_truncated_envelope_is_rejected(self):
         target = self.root / "_site/documents/guidance.json"

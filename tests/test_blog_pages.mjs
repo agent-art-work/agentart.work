@@ -11,6 +11,14 @@ import MarkdownIt from 'markdown-it';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const base = process.env.SITE_BASE_PATH ?? '';
 const read = file => readFileSync(path.join(root, file), 'utf8');
+const readingAssets = () => {
+  const adapter = read('_site/index.html').match(/src="[^\"]*\/assets\/(agent-art-reading\.[a-f0-9]{64}\.mjs)"/)?.[1];
+  assert.ok(adapter, 'home references a content-addressed reading adapter');
+  const integration = read(`_site/assets/${adapter}`);
+  const work = integration.match(/from '\.\/(agent-art-reading-work\.[a-f0-9]{64}\.mjs)'/)?.[1];
+  assert.ok(work, 'adapter references a content-addressed Work');
+  return { adapter, integration, work };
+};
 const markdown = new MarkdownIt({ html: false, linkify: false });
 const studies = JSON.parse(read('site/studies.json'))
   .sort((left, right) => right.date.localeCompare(left.date) || left.title.localeCompare(right.title));
@@ -111,7 +119,7 @@ test('the homepage is the complete locked manifesto with shared footer and refer
   assert.equal(groups.length, 1);
   for (const group of groups) assert.equal(elements(group.inner, 'h2').length, 0);
   assert.equal(elements(top.inner, 'nav', 'home-reference').length, 0);
-  assert.equal(elements(top.inner, 'a').length, 6);
+  assert.equal(elements(top.inner, 'a').length, 7);
   const homeBrand = one(top.inner, 'a', 'brand');
   assert.equal(text(homeBrand.inner), '');
   assert.equal(homeBrand.attrs['aria-label'], 'Agent Art Work home');
@@ -183,8 +191,8 @@ test('the shared reading utility keeps the complete canonical prompt in a native
 test('reading controls mount before the manual disclosure and preserve the exact handoff-only public context', async () => {
   const homepage = read('_site/index.html');
   assert.ok(homepage.indexOf('id="ask-your-agent"') < homepage.indexOf('id="agent-prompt-disclosure"'));
-  assert.ok(homepage.includes(`${base}/assets/agent-art-reading.mjs`));
-  const { default: work } = await import(pathToFileURL(path.join(root, '_site/assets/agent-art-reading-work.mjs')).href);
+  const assets = readingAssets();
+  const { default: work } = await import(pathToFileURL(path.join(root, `_site/assets/${assets.work}`)).href);
   const reading = createReading({ work });
   const canonical = read('docs/AGENT_ACCESS.md').match(/## A prompt to use\s+```text\n([\s\S]*?)\n```/)?.[1];
   for (const [client, protocol, parameter] of [
@@ -195,14 +203,14 @@ test('reading controls mount before the manual disclosure and preserve the exact
     assert.equal(destination.searchParams.get(parameter), canonical);
   }
   assert.equal(reading.prepare({ client: 'claude-app', conversation: 'existing' }).kind, 'manual');
-  assert.ok(!read('_site/assets/agent-art-reading.mjs').includes('/__bridge/'));
-  const integration = read('_site/assets/agent-art-reading.mjs');
-  const workRevision = createHash('sha256').update(read('_site/assets/agent-art-reading-work.mjs')).digest('hex');
+  const integration = assets.integration;
+  assert.ok(!integration.includes('/__bridge/'));
+  const workRevision = createHash('sha256').update(read(`_site/assets/${assets.work}`)).digest('hex');
   const adapterRevision = createHash('sha256').update(integration).digest('hex');
-  assert.ok(integration.includes(`'./agent-art-reading-work.mjs?v=${workRevision}'`),
-    'the nested Work import must change its cache key when prompt bytes change');
-  assert.ok(homepage.includes(`${base}/assets/agent-art-reading.mjs?v=${adapterRevision}`),
-    'the homepage must request the matching adapter revision');
+  assert.ok(integration.includes(`'./agent-art-reading-work.${workRevision}.mjs'`),
+    'Work revisions have distinct filenames on the static host');
+  assert.ok(homepage.includes(`${base}/assets/agent-art-reading.${adapterRevision}.mjs`),
+    'the homepage requests an immutable adapter filename');
   assert.match(integration, /import \{ mountReading \} from '\.\/agent-art-sdk\/0\.1\.5-alpha\.2\/reading-ui\.mjs'/);
   assert.ok(homepage.includes(`${base}/assets/agent-art-sdk/0.1.5-alpha.2/reading.css`),
     'SDK styles and relative module imports share the immutable version path');
@@ -234,6 +242,39 @@ test('public reading alpha retains archive integrity and redistribution notice',
   const notice = read(`_site/assets/agent-art-sdk/${metadata.version}/LICENSE`);
   assert.equal(notice, read('node_modules/@agent-art/protocol/LICENSE'));
   assert.match(notice, /MIT License/);
+});
+
+test('an upgrade retains the previous deployed SDK graph with exact archive bytes', () => {
+  const policy = JSON.parse(read('site/sdk-asset-retention.json'));
+  assert.equal(policy.policy, 'current-and-one-predecessor');
+  assert.equal(policy.previous.length, 1);
+  const previous = policy.previous[0];
+  assert.equal(previous.version, '0.1.5-flat-label.1');
+  assert.equal(previous.sha256, 'be292abbca9f934dbc75e4bbe6f544011251043a75a89de608f8cbb8c60d02ea');
+  const archive = readFileSync(path.join(root, previous.archive));
+  assert.equal(archive.length, 16803);
+  assert.equal(createHash('sha256').update(archive).digest('hex'), previous.sha256);
+  const directory = `_site/assets/agent-art-sdk/${previous.version}`;
+  const files = ['index.mjs', 'clients.mjs', 'reading.mjs', 'reading-ui.mjs', 'reading.css', 'README.md'];
+  assert.deepEqual(previous.notices, ['README.md']);
+  assert.deepEqual(readdirSync(path.join(root, directory)).sort(), files.sort());
+  assert.deepEqual(readdirSync(path.join(root, '_site/assets/agent-art-sdk')).sort(),
+    ['0.1.5-alpha.2', previous.version].sort(), 'only current and one predecessor are published');
+  for (const file of files) {
+    const original = spawnSync('tar', ['-xOf', path.join(root, previous.archive), `package/${file}`]);
+    assert.equal(original.status, 0, file);
+    assert.deepEqual(readFileSync(path.join(root, directory, file)), original.stdout, file);
+    if (file.endsWith('.mjs')) {
+      for (const match of read(`${directory}/${file}`).matchAll(/from\s+['"]\.\/([^'"]+)['"]/g)) {
+        assert.ok(files.includes(match[1]), `${file} dependency ${match[1]} remains in the same version`);
+      }
+    }
+  }
+  // Retention supplies dependencies to old cached adapters, never new pages.
+  for (const file of readdirSync(path.join(root, '_site'), { recursive: true }).filter(file => file.endsWith('.html'))) {
+    assert.ok(!read(`_site/${file}`).includes(`/agent-art-sdk/${previous.version}/`), file);
+  }
+  assert.ok(!readingAssets().integration.includes(previous.version));
 });
 
 test('legacy studies, lessons and Lab URLs redirect to the Blog with a visible fallback', () => {
@@ -283,10 +324,10 @@ test('Agent Art Work navigation and the shared reading utility serve every site 
       const links = elements(navigation[0].inner, 'a');
       assert.deepEqual(links.map(link => link.attrs.href), [
         `${base}/agent-art/`, `${base}/protocol/`,
-        `${base}/works/`, `${base}/blog/`, 'https://github.com/agent-art-work',
+        `${base}/works/`, `${base}/blog/`, 'https://github.com/agent-art-work', 'https://x.com/AgentArt_work',
       ], file);
       assert.deepEqual(links.map(link => text(link.inner)),
-        ['Agent Art', 'Protocol', 'Works', 'Blog', 'GitHub'], file);
+        ['Agent Art', 'Protocol', 'Works', 'Blog', 'GitHub', 'X'], file);
       const brand = one(one(page, 'header', 'site-header').inner, 'a', 'brand');
       assert.equal(brand.attrs.href, `${base}/`, file);
       assert.equal(brand.attrs['aria-label'], 'Agent Art Work home', file);
@@ -310,7 +351,10 @@ test('Agent Art Work navigation and the shared reading utility serve every site 
       `${file}: the compact button precedes its manual fallback`);
     const scripts = elements(page, 'script');
     assert.equal(scripts.filter(script => script.attrs.src === `${base}/assets/copy-prompt.js`).length, 1, file);
-    assert.equal(scripts.filter(script => script.attrs.src?.startsWith(`${base}/assets/agent-art-reading.mjs?v=`)).length, 1, file);
+    assert.equal(scripts.filter(script => script.attrs.src === `${base}/assets/${readingAssets().adapter}`).length, 1, file);
+    const footer = one(page, 'footer', 'site-footer');
+    assert.ok(elements(footer.inner, 'a').some(link => link.attrs.href === 'https://x.com/AgentArt_work' && text(link.inner) === 'X'), file);
+    assert.ok(page.includes('<meta name="twitter:site" content="@AgentArt_work">'), file);
     assert.ok(page.includes(`${base}/assets/agent-art-sdk/0.1.5-alpha.2/reading.css`), file);
     checked += 1;
   }

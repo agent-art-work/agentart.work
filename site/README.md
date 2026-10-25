@@ -22,7 +22,9 @@ The global top navigation aligns with the centered reading column and has
 no visible group heading or divider. On mobile it uses two compact rows.
 Home uses the same footer as regular pages: Ask your Agent followed by the
 umbrella identity and one continuous list of links. Agent Art, Protocol, Works,
-Blog, About, Ask your Agent and GitHub complete the footer. Links wrap naturally
+Blog, About, Ask your Agent, GitHub and X complete the footer. X links to
+`https://x.com/AgentArt_work`; About shows the handle, and shared pages declare
+`@AgentArt_work` in their `twitter:site` metadata. Links wrap naturally
 within the reading width with compact gaps. About explains the site's activities
 and links to Ask your Agent. The Ask your Agent page links to “Source retrieval and verification” and
 “Document index (JSON)” under “For website authors”. Their routes, exports and
@@ -75,11 +77,13 @@ are not automatically copied or exported.
 
 The shared global top bar has only the Off grid logo at the left, linking home
 with the accessible name “Agent Art Work home”. The navigation beside it is
-Agent Art, Protocol, Works, Blog and GitHub on every shared-layout page.
+Agent Art, Protocol, Works, Blog, GitHub and X on every shared-layout page.
+The compact X link opens `@AgentArt_work`, with the handle in its hover hint
+and accessible label, matching the footer.
 GitHub links to the Agent Art Work organization; About remains in the footer. Ask your Agent stays
 available as the shared reading control, with its explanation linked from
 Protocol and About; it has no top-menu item.
-On mobile the five links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
+On mobile the six links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
 remains linked from About. Article source
 and history links point at `agent-art-work/agentart.work`. The footer retains
 agent discovery and contributor links alongside the umbrella identity.
@@ -114,8 +118,9 @@ The label underlines on hover; the three actions underline by default and
 remove it on hover. Hover hints and the three-second inline confirmation remain.
 The tuning desk is internal design material and is not part of the v2 pages.
 
-The v2 website shipped as `v2.0.0-rc.1`; the newer SDK integration described
-below is approved for rollout. See HANDOFF and the integration PR for deployment status.
+The v2 website shipped as `v2.0.0-rc.1`; SDK `0.1.5-alpha.2` was subsequently
+deployed through [PR #13](https://github.com/agent-art-work/agentart.work/pull/13).
+See HANDOFF for the current local work and remaining release steps.
 Historical release records below retain their dates.
 
 ## Selected reading typography
@@ -226,14 +231,100 @@ Rebuilding does not update an already-open preview. Reload the exact tab used
 for a handoff after rebuilding; reloading a separate Chrome tab does not update
 an in-app preview. Previously sent messages and prefilled drafts retain their
 old text. Before another handoff, expand the original prompt and check its
-paragraphs. The generated adapter URL and its Work import carry content hashes
-so the newly built homepage requests its matching prompt assets. Those hashes
+paragraphs. The generated adapter and its Work import use SHA-256 filenames,
+so a static server can retrieve their exact bytes independently of query strings.
+Those hashes
 do not refresh an already-mounted page or an old HTML document by themselves.
 The SDK's five browser files are copied unchanged under
 `assets/agent-art-sdk/0.1.5-alpha.2/`. Versioning the package directory gives its relative
 module imports and stylesheet the same cache boundary. On an SDK update, change
 that path in the build, adapter and output allowlist together with the package
 pin; never overwrite a released package with different bytes.
+
+### SDK assets across an upgrade
+
+The build publishes the current
+SDK and **at most one immediately preceding deployed SDK**, named explicitly in
+[sdk-asset-retention.json](sdk-asset-retention.json). It does not discover or
+publish every archive under `vendor/`. Keep the predecessor for the successor's
+deployed lifetime. On a reviewed SDK upgrade, rotate the declaration to the
+outgoing deployed version only after that deployment has been verified and
+has been live for at least 24 hours, exceeding the previously observed 600-second
+HTML/asset cache lifetime. Recheck cache headers before rotation; defer an
+upgrade/rotation if this window is insufficient. This is bounded one-upgrade
+compatibility, not support for indefinitely old tabs or arbitrary cache states.
+
+For the present transition, retain `0.1.5-flat-label.1` from its 16,803-byte
+archive, SHA-256
+`be292abbca9f934dbc75e4bbe6f544011251043a75a89de608f8cbb8c60d02ea`.
+The builder verifies its digest and package identity, then copies only its
+five browser files and original `README.md` into the old version directory.
+The README remains historical package context, not current installation guidance.
+That archive contains no license file or license field; do not attach the new
+SDK's MIT license to it. Current alpha.2 assets and its MIT notice stay unchanged.
+The site checker rejects missing, altered or unlisted retained files, including
+an entirely absent predecessor directory that current HTML would not link to.
+
+Qualification uses a real old build at `f41ca7fe0e79083472d0bb86d974c71fbf62a4db`:
+cache its HTML, adapter and Work for 600 seconds, close the tab, switch the same
+local origin to the new output, then open a fresh tab with caching enabled.
+SDK responses use `no-store` in this fixture to model dependencies absent from
+cache; this is a controlled cache state, not a claim about ordinary eviction
+frequency. Require actual entry cache hits and network retrieval of all five
+old SDK files from the new output. Separately verify that fresh new pages load
+only alpha.2, Copy/manual fallback preserve the exact prompt, and missing old
+assets reproduce the failure. Native navigation is canceled; clipboard writes
+are synthetic. Keep private local browser evidence out of the public package.
+
+### Reading entries across an upgrade
+
+New HTML selects `assets/agent-art-reading.<sha256>.mjs`; that adapter imports
+`agent-art-reading-work.<sha256>.mjs` and its pinned SDK. Each filename identifies
+its exact bytes. Older HTML used fixed filenames with `?v=<sha256>` queries,
+which a static host ignored when selecting the file. Those two fixed filenames
+now contain compatibility routers: the requested hash selects an explicitly
+retained snapshot, never the current version by default. The Work router exports
+that snapshot's default value, so a cached old adapter also gets its original
+Work after a cache miss. Unknown or missing hashes fail before mounting; the
+existing manual invitation stays available.
+
+[reading-asset-retention.json](reading-asset-retention.json) retains **at most
+two prior distinct deployed reading integrations**, independent of the SDK
+retention count. The initial snapshots come from releases `f41ca7f` (flat-label.1)
+and `122d703` (alpha.2). Their generated adapters and shared Work are stored
+byte-for-byte in `site/reading-snapshots/`, with their full SHA-256 hashes and
+source commits in the declaration. They stay in the output's `assets/` directory
+so their original relative imports remain correct. The builder and checker
+verify the bytes, imports, SDK availability and compatibility routers.
+
+On **any adapter or invitation change**, preserve the outgoing deployed
+adapter/Work pair and its source commit before replacing it, even if the SDK
+version is unchanged. Retain two distinct predecessor pairs; deduplicate identical
+Work bytes. Rotate only after the verified deployment/cache window described
+above. Coordinate SDK rotation so every retained reading pair's SDK stays
+available; the build rejects unavailable SDK references. Keep historical source
+snapshots when removing an entry from the public retention set. Do not overwrite
+hash-named files or silently drop unexpired predecessors to meet the cap.
+
+Local mixed-cache qualification uses both authentic deployed builds, caching
+HTML for 600 seconds while making (a) adapter and Work, or (b) Work only absent
+from cache. SDK `no-store` responses force dependency fetches from the switched
+new output. Require genuine HTML/adapter cache-hit evidence for each case,
+matching old SDK modules **and CSS**, the exact Work, and a single mount. Test
+new entries separately at desktop/light and mobile/dark. Copy, denied-copy/manual
+fallback, canceled native payloads and no-JavaScript access must retain the
+canonical invitation. A synthetic test with different old/new Work text guards
+against accidentally returning the latest invitation. This qualifies the
+retained graphs, not every historical page asset, CDN behavior or indefinite
+cache retention; it cannot recall already cached mismatched bytes.
+
+Before release, run the normal checks and the transition qualification. After
+an authorized deployment, verify every retained file and the current MIT notice
+by HTTP bytes/hash, exercise both legacy query routes and new immutable entries,
+inspect actual cache headers, and recheck the new page's module graph. The operator
+authorized publication of this cache fix and the X links on 2026-10-25; the
+release PR records deployment verification. Local checks alone do not establish
+that these files are live.
 
 ## Add or revise an article
 

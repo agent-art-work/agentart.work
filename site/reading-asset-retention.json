@@ -1,0 +1,17 @@
+{
+  "policy": "current-and-two-reading-predecessors",
+  "previous": [
+    {
+      "revision": "f41ca7fe0e79083472d0bb86d974c71fbf62a4db",
+      "sdk": "0.1.5-flat-label.1",
+      "adapter": "ee56e4fe1044cf6e2a9f7883991b0fd7a2491b977b6cf05149d353e09aba0bdc",
+      "work": "33aa34d6ae95108ba302bc6fec9ecb5c1ad336f20e209f8cf7d2a1ee0365a622"
+    },
+    {
+      "revision": "122d70350d0088001694dafef1e84c66ffc6f7a1",
+      "sdk": "0.1.5-alpha.2",
+      "adapter": "e22fa1d1141e97a690a2e1521b59b37bafbc1f93fe789f21b94fec39e2ed7ea4",
+      "work": "33aa34d6ae95108ba302bc6fec9ecb5c1ad336f20e209f8cf7d2a1ee0365a622"
+    }
+  ]
+}

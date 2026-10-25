@@ -1,0 +1,11 @@
+{
+  "policy": "current-and-one-predecessor",
+  "previous": [
+    {
+      "version": "0.1.5-flat-label.1",
+      "archive": "vendor/agent-art-protocol-0.1.5-flat-label.1.tgz",
+      "sha256": "be292abbca9f934dbc75e4bbe6f544011251043a75a89de608f8cbb8c60d02ea",
+      "notices": ["README.md"]
+    }
+  ]
+}

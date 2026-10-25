@@ -12,6 +12,8 @@ import sys
 from urllib.parse import unquote, urlsplit
 
 from check_agent_documents import check_agent_documents, public_agent_files, source_catalogue
+from check_retained_sdk import check_retained_sdk
+from check_reading_assets import check_reading_assets
 
 
 VOID_TAGS = {
@@ -28,6 +30,10 @@ PUBLIC_SCRIPTS = {
     )),
 }
 PUBLIC_SDK_NOTICES = {Path("assets/agent-art-sdk/0.1.5-alpha.2/LICENSE")}
+PUBLIC_CURRENT_SDK = {
+    Path("assets/agent-art-sdk/0.1.5-alpha.2") / name for name in
+    ("index.mjs", "clients.mjs", "reading.mjs", "reading-ui.mjs", "reading.css", "LICENSE")
+}
 PUBLIC_FONT_ASSETS = {Path("assets/fonts/pt-mono/PTM55FT.ttf"), Path("assets/fonts/pt-mono/OFL.txt")}
 PRIVATE_FOLDERS = {"private", "local", "tmp", "node_modules", "__pycache__"}
 
@@ -153,6 +159,12 @@ def check_site(root, base):
     links = 0
     if not output.is_dir():
         return ["missing _site directory; build the site first"], 0, 0, 0
+    retained_errors, retained_files = check_retained_sdk(root, output)
+    errors.extend(retained_errors)
+    reading_files = set()
+    if (root / "site/assets/agent-art-reading.mjs").is_file():
+        reading_errors, reading_files = check_reading_assets(root, output)
+        errors.extend(reading_errors)
     try:
         agent_files = public_agent_files(root)
         routes, _ = source_catalogue(root)
@@ -174,7 +186,11 @@ def check_site(root, base):
             if relative == Path(".nojekyll"):
                 files.append(path)
                 continue
-            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES)):
+            if (relative.parts[:2] == ("assets", "agent-art-sdk")
+                    and relative not in PUBLIC_CURRENT_SDK | retained_files):
+                errors.append(f"unlisted SDK output file: {relative}")
+                continue
+            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES | retained_files | reading_files)):
                 errors.append(f"non-public output file: {relative}")
                 continue
             files.append(path)

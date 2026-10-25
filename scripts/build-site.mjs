@@ -3,13 +3,14 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync } f
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
 import { defineWork } from '@agent-art/protocol';
 import MarkdownIt from 'markdown-it';
 import GithubSlugger from 'github-slugger';
 import { buildAgentDocuments, documentId } from './agent-documents.mjs';
 import { renderStyleDemo } from './style-demo.mjs';
 import { renderIconConcepts } from './icon-demo.mjs';
+import { copyRetainedSdk } from './retained-sdk.mjs';
+import { writeReadingAssets } from './reading-assets.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sdkRoot = path.dirname(createRequire(import.meta.url).resolve('@agent-art/protocol'));
@@ -124,11 +125,12 @@ function shell(title, content, description = homeDescription, source = null, sty
   const navigation = [['agent-art', 'Agent Art'], ['protocol', 'Protocol'], ['works', 'Works'], ['blog', 'Blog']]
     .map(([route, label]) => `<a href="${url(`${route}/index.html`)}"${active === route ? ' aria-current="page"' : ''}>${label}</a>`).join('');
   const homeLinks = position => `<section class="home-links" aria-label="${position === 'top' ? 'Top navigation' : 'Bottom navigation'}">
-<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation.replace(`href="${url('blog/index.html')}"`, `${home && position === 'top' ? 'id="articles" ' : ''}href="${url('blog/index.html')}"`)}<a href="https://github.com/agent-art-work">GitHub</a></nav>
+<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation.replace(`href="${url('blog/index.html')}"`, `${home && position === 'top' ? 'id="articles" ' : ''}href="${url('blog/index.html')}"`)}<a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a></nav>
 </section>`;
   return `<!doctype html>
 <html lang="en" data-font="pt-mono" data-weight="400" data-texture="dots"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} · Agent Art Work</title><meta name="description" content="${esc(description)}">
+<meta name="twitter:site" content="@AgentArt_work">
 <link rel="alternate" type="application/json" title="Agent document index" href="${url('agent-index.json')}">
 ${source ? `<link rel="alternate" type="application/json" title="Complete document" href="${url(`documents/${documentId(source)}.json`)}">` : ''}
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#ffffff"><link rel="icon" href="${url('assets/logo.svg?v=off-grid-2px-1')}" type="image/svg+xml" sizes="any">
@@ -140,7 +142,7 @@ ${source ? `<link rel="alternate" type="application/json" title="Complete docume
 <section class="site-reading" id="reading-heading" aria-label="Ask your Agent"><div class="site-agent-reading"><div id="ask-your-agent"></div></div>${promptDisclosure}</section>
 <footer class="site-footer"><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
-<a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a>
+<a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
 </nav></footer>${readingScripts}</body></html>\n`;
 }
 
@@ -167,6 +169,7 @@ for (const file of ['index.mjs', 'clients.mjs', 'reading.mjs', 'reading-ui.mjs',
   mkdirSync(path.join(output, sdkAssetPath), { recursive: true });
   cpSync(path.join(sdkRoot, file), path.join(output, sdkAssetPath, file));
 }
+copyRetainedSdk(root, output, '0.1.5-alpha.2');
 const readingWork = defineWork({
   id: 'https://agentart.work/#reading', version: '2', title: 'Explore Agent Art Work',
   purpose: 'Read and discuss Agent Art Work’s public overviews, works, articles and guidance inside the visitor’s own Agent.',
@@ -178,13 +181,7 @@ const readingWork = defineWork({
   conditions: { readingPolicy: agentPrompt, questionsAndAnswers: 'Remain inside the visitor’s Agent.', contributionReturn: false },
 });
 const workModule = `export default ${JSON.stringify(readingWork).replace(/</g, '\\u003c')};\n`;
-const workAssetRevision = createHash('sha256').update(workModule).digest('hex');
-write('assets/agent-art-reading-work.mjs', workModule);
-// Version both imports: a query on the entry module does not reach its children.
-const readingAdapter = read('site/assets/agent-art-reading.mjs').replace(
-  "'./agent-art-reading-work.mjs'", `'./agent-art-reading-work.mjs?v=${workAssetRevision}'`);
-const adapterAssetRevision = createHash('sha256').update(readingAdapter).digest('hex');
-write('assets/agent-art-reading.mjs', readingAdapter);
+const readingAssets = writeReadingAssets(root, output, workModule, '0.1.5-alpha.2');
 write('.nojekyll', '');
 write('agent-index.json', agentDocuments.indexBytes);
 for (const [id, bytes] of agentDocuments.documents) write(`documents/${id}.json`, bytes);
@@ -192,7 +189,7 @@ write('llms.txt', `# Agent Art Work\n\n> The Agent Art manifesto and definition,
 
 const promptDisclosure = `<details class="hero-prompt" id="agent-prompt-disclosure"><summary><span id="agent-prompt-heading">Ask your Agent</span><span class="disclosure-icon" aria-hidden="true"></span></summary>
 <div class="prompt-content"><p class="prompt-intro">Copy this invitation into your Agent to explore the site's sources.</p><div class="prompt-actions"><button class="button prompt-copy" type="button" id="copy-agent-prompt" hidden>Copy prompt</button><a href="${url('ask-your-agent/index.html')}">How it works</a></div><pre id="agent-prompt" tabindex="0" aria-label="Prompt to copy for your agent">${esc(agentPrompt)}</pre><p class="prompt-status" id="prompt-copy-status" role="status" aria-live="polite">You can also select and copy the text.</p></div></details>`;
-const readingScripts = `<script src="${url('assets/copy-prompt.js')}" defer></script><link rel="stylesheet" href="${url(`${sdkAssetPath}/reading.css`)}"><script type="module" src="${url(`assets/agent-art-reading.mjs?v=${adapterAssetRevision}`)}"></script>`;
+const readingScripts = `<script src="${url('assets/copy-prompt.js')}" defer></script><link rel="stylesheet" href="${url(`${sdkAssetPath}/reading.css`)}"><script type="module" src="${url(readingAssets.adapterPath)}"></script>`;
 // The canonical manuscript owns every paragraph and its emphasis.
 const homeManifesto = reading.get('docs/MANIFESTO.md').body;
 write('index.html', shell('Agent Art Manifesto', `<article class="home-manifesto" aria-labelledby="manifesto-title"><header class="hero-intro"><h1 id="manifesto-title">Agent Art Manifesto</h1></header>${homeManifesto}</article>`, homeDescription, 'docs/MANIFESTO.md', [], 'home'));

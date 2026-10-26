@@ -37,6 +37,20 @@ projects; it proposes no artwork or claim of intentional participation.
 | [What makes an environment agent-friendly?](studies/2026-10-04-agent-friendly-environments.md) | Working-note synthesis of existing native-tool, document-access and handoff records; practical review questions are proposed, and broader performance gains remain unmeasured. |
 | [From copy prompt to agent handoff: lessons from four websites](studies/2026-10-04-copy-prompt-reading-handoff.md) | Working note; a local reference implementation and two isolated pilots passed bounded checks. Source inspection, browser observations and reported implementation checks remain distinct; general reliability, comprehension and maintenance savings are unmeasured. |
 
+## Release update, 2026-10-26
+
+The website now runs the stable
+[Agent Art Work v2.0.0 release](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0),
+published on 2026-10-25. Ask your Agent uses the public
+[Protocol reading SDK `0.1.5-alpha.2`](https://github.com/agent-art-work/agent-art-protocol/releases/tag/v0.1.5-alpha.2).
+The website is stable; the SDK retains its alpha designation.
+
+This supersedes the local-site/private-SDK status in the 2026-10-24 context
+below, which is retained as recorded. It does not retroactively release the
+October 4 prototype or rerun its trials. See the maintained
+[integration notes](../../site/README.md#build-and-preview) for current availability
+and verification limits.
+
 ## Current context, 2026-10-24
 
 These Lab records describe the October 4 prototype and its bounded pilot checks.

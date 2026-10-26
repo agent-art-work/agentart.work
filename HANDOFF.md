@@ -149,6 +149,18 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-10-26 website-maintenance documentation cleanup: current agent,
+  contribution and site-maintenance instructions now describe the released
+  v2 website rather than a pending preview. Dated additions in organization
+  context and the Agent handoff collection supersede old website/private-SDK
+  status without rewriting the original records. Historical study addenda,
+  qualification reports, manifesto and design remain unchanged. The public
+  reading SDK remains alpha; Inshell's release status is not inferred from
+  this site's release. The operator authorized commit and push through the
+  reviewed publication path; its PR records validation and deployment.
+  The v2.0.0 tag stays fixed. Next: use the current release context for
+  maintenance and retain dated observations as historical evidence.
+
 - 2026-10-25 **stable v2.0.0 released**: the annotated tag and latest stable
   [GitHub release](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0)
   point to `34eb92745d39e192f16719f7a6926784f697592d`, merged through

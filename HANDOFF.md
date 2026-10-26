@@ -149,6 +149,41 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-10-26 website maintenance, **local production-build wiring**: OPS
+  authorized local completion of the reviewed analytics candidate after its
+  separate provider setup and bounded native diagnostic. Prepared an explicit
+  production-only rebuild step in the existing Pages workflow, using future
+  repository variables; ordinary local/CI/PR/preview builds remain off and the
+  checked-in configuration stays disabled/unset. The consent module is unchanged.
+  No live variable/provider mutation, commit/push/PR/merge, deployment or new
+  Google request is authorized or performed. Native cross-domain settings,
+  processed/filter-match evidence and hosted staging remain unqualified.
+  The original candidate/evidence is preserved. See [build and release
+  instructions](site/analytics.md); the new exact local handback is under
+  ignored `local/qa/analytics-production-wiring/`. Local checks pass 64 Node
+  tests, 77 Python tests and 12 isolated offline build cases. The default
+  95-file artifact is byte-identical to the previous qualified candidate;
+  synthetic enabled builds change only the inert HTML configuration. The
+  reviewed consent module and its browser evidence remain unchanged.
+  Next: OPS reviews this
+  candidate and the remaining approval gates; no onward messages or timers.
+
+- 2026-10-26 website maintenance, **local analytics preparation only**: prepared
+  a small site-owned consent integration from main `57e55ef`. Configuration is
+  disabled with no measurement ID; no Google SDK requests or measurement are
+  authorized. The footer provides Analytics choices and browser exclusion;
+  the locked manifesto, existing design, Protocol SDK, Agent exports and
+  historical records remain unchanged. See the [candidate scope and release
+  gates](site/analytics.md). Commit/push/PR, merge, provider setup, hosted
+  staging, production deployment and enablement remain pending separate
+  authorization. Local intercepted-tag checks cannot qualify the actual Google
+  SDK or provider. Local checks pass 75 Python tests, 62 Node tests and 20
+  intercepted stable-Chrome scenarios; the generated site remains 32 pages.
+  No hosted staging destination is configured. Local QA and the exact candidate
+  identity are retained under ignored `local/qa/analytics-candidate/`.
+  Next: review that handback before approving any release or provider action;
+  the previous documentation task is already merged in PR #17.
+
 - 2026-10-26 website-maintenance documentation cleanup: current agent,
   contribution and site-maintenance instructions now describe the released
   v2 website rather than a pending preview. Dated additions in organization

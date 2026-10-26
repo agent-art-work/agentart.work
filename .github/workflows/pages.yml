@@ -33,6 +33,15 @@ jobs:
           npm test
           npm run build
           npm run check:site
+      - name: Build explicitly enabled production analytics
+        if: github.repository == 'agent-art-work/agentart.work' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.AGENTART_ANALYTICS_ENABLED == 'true'
+        env:
+          AGENTART_DEPLOYMENT: production
+          AGENTART_ANALYTICS_ENABLED: ${{ vars.AGENTART_ANALYTICS_ENABLED }}
+          AGENTART_ANALYTICS_MEASUREMENT_ID: ${{ vars.AGENTART_ANALYTICS_MEASUREMENT_ID }}
+        run: |
+          npm run build
+          npm run check:site
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: _site

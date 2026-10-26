@@ -11,6 +11,7 @@ import { renderStyleDemo } from './style-demo.mjs';
 import { renderIconConcepts } from './icon-demo.mjs';
 import { copyRetainedSdk } from './retained-sdk.mjs';
 import { writeReadingAssets } from './reading-assets.mjs';
+import { analyticsBuildConfig, writeAnalyticsAssets } from './analytics-assets.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sdkRoot = path.dirname(createRequire(import.meta.url).resolve('@agent-art/protocol'));
@@ -31,6 +32,7 @@ const read = file => readFileSync(path.join(root, file), 'utf8');
 const esc = text => String(text).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const url = file => `${base}/${file.replace(/index\.html$/, '')}`;
 const studies = JSON.parse(read('site/studies.json'));
+const analyticsConfig = analyticsBuildConfig(JSON.parse(read('site/analytics.json')), process.env, base);
 const routes = new Map([
   ['docs/MANIFESTO.md', 'index.html'],
   ['docs/AGENT_ART.md', 'agent-art/index.html'],
@@ -135,7 +137,7 @@ function shell(title, content, description = homeDescription, source = null, sty
 ${source ? `<link rel="alternate" type="application/json" title="Complete document" href="${url(`documents/${documentId(source)}.json`)}">` : ''}
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#ffffff"><link rel="icon" href="${url('assets/logo.svg?v=off-grid-2px-1')}" type="image/svg+xml" sizes="any">
 <script src="${url('assets/theme.js')}"></script>
-<link rel="stylesheet" href="${url('assets/site.css')}">${stylesheets.map(file => `<link rel="stylesheet" href="${url(file)}">`).join('')}</head><body${home ? ' class="manifesto-home"' : ''}>
+<link rel="stylesheet" href="${url('assets/site.css')}"><link rel="stylesheet" href="${url(analyticsAssets.css)}">${stylesheets.map(file => `<link rel="stylesheet" href="${url(file)}">`).join('')}</head><body${home ? ' class="manifesto-home"' : ''}>
 <script src="${url('assets/masthead.js')}" defer></script>${home ? `<script src="${url('assets/home-intro.js')}" defer></script>` : ''}<a class="skip-link" href="#main">Skip to content</a>
 <header class="global-top ${home ? 'manifesto-top' : 'site-header'}"><a class="brand" href="${url('index.html')}" aria-label="Agent Art Work home"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span></a>${homeLinks('top')}</header>
 <main id="main">${content}</main>
@@ -143,7 +145,8 @@ ${source ? `<link rel="alternate" type="application/json" title="Complete docume
 <footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
 <a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
-</nav></footer>${readingScripts}</body></html>\n`;
+<button class="analytics-open" type="button" data-analytics-action="open" aria-haspopup="dialog" aria-controls="analytics-settings" hidden>Analytics choices</button>
+</nav></footer>${analyticsMarkup}<script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script><script type="module" src="${url(analyticsAssets.script)}"></script>${readingScripts}</body></html>\n`;
 }
 
 function write(file, content) {
@@ -165,6 +168,7 @@ if (!agentPrompt) throw new Error('The access guide must contain the homepage ag
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 cpSync(path.join(root, 'site/assets'), path.join(output, 'assets'), { recursive: true });
+const analyticsAssets = writeAnalyticsAssets(root, output);
 for (const file of ['index.mjs', 'clients.mjs', 'reading.mjs', 'reading-ui.mjs', 'reading.css', 'LICENSE']) {
   mkdirSync(path.join(output, sdkAssetPath), { recursive: true });
   cpSync(path.join(sdkRoot, file), path.join(output, sdkAssetPath, file));
@@ -182,6 +186,12 @@ const readingWork = defineWork({
 });
 const workModule = `export default ${JSON.stringify(readingWork).replace(/</g, '\\u003c')};\n`;
 const readingAssets = writeReadingAssets(root, output, workModule, '0.1.5-alpha.2');
+const analyticsActions = `<div class="analytics-actions"><button type="button" data-analytics-action="allow">Allow analytics</button><button type="button" data-analytics-action="reject">Reject analytics</button></div>`;
+const analyticsMarkup = `<aside id="analytics-notice" aria-label="Optional analytics" hidden><p>Allow Google Analytics to measure page categories, approximate country, visits and engagement? It uses cookies. Your choice is optional; reading and Ask your Agent work either way.</p>${analyticsActions}<button class="analytics-open" type="button" data-analytics-action="open">Details and choices</button></aside>
+<dialog id="analytics-settings" aria-labelledby="analytics-title"><h2 id="analytics-title" tabindex="-1">Analytics choices</h2><p id="analytics-status" role="status" aria-live="polite">Analytics is off until this page verifies your permission.</p>
+<p>If enabled and allowed, Google Analytics measures broad page categories, approximate country, browser visits and engagement time. Google receives network and browser information, including your IP address. No reading invitations, prompts, artwork contents or downloaded documents are included. Advertising and personalization are off.</p>
+${analyticsActions}<details><summary>Cookies and limits</summary><p>Your choice is saved in this browser for 90 days. If allowed, analytics cookies distinguish browsers and sessions. The client cookie is configured for up to 90 days from creation; session cookies may renew for up to 90 days after activity or a later visit. Clearing site storage removes the saved choice and browser exclusion.</p><p>Reject analytics to withdraw permission. This stops further measurement on this page and removes this integration’s analytics cookies; it cannot recall information already sent. Excluding this browser also prevents future measurement here until you remove the exclusion. Removing exclusion does not grant permission.</p><p>Reports cover consenting browsers, not all visitors or unique people. Country can reflect a VPN or network location; engagement time is not proof of attention. See <a href="https://policies.google.com/privacy" rel="noreferrer">Google’s privacy policy</a>.</p></details>
+<div class="analytics-secondary"><button type="button" data-analytics-action="exclude">Exclude this browser</button><button type="button" data-analytics-action="include" hidden>Remove browser exclusion</button><button type="button" data-analytics-action="close">Close</button></div></dialog>`;
 write('.nojekyll', '');
 write('agent-index.json', agentDocuments.indexBytes);
 for (const [id, bytes] of agentDocuments.documents) write(`documents/${id}.json`, bytes);

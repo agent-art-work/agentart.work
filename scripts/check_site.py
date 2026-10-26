@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 from check_agent_documents import check_agent_documents, public_agent_files, source_catalogue
 from check_retained_sdk import check_retained_sdk
 from check_reading_assets import check_reading_assets
+from check_analytics import check_analytics
 
 
 VOID_TAGS = {
@@ -154,6 +155,10 @@ def check_site(root, base):
         return ["generated site directory must not be a symlink"], 0, 0, 0
     output = (root / "_site").resolve()
     errors = []
+    analytics_files = set()
+    if (root / "site/analytics.json").is_file():
+        analytics_errors, analytics_files = check_analytics(root, output, base)
+        errors.extend(analytics_errors)
     pages = {}
     files = []
     links = 0
@@ -190,7 +195,7 @@ def check_site(root, base):
                     and relative not in PUBLIC_CURRENT_SDK | retained_files):
                 errors.append(f"unlisted SDK output file: {relative}")
                 continue
-            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES | retained_files | reading_files)):
+            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES | retained_files | reading_files | analytics_files)):
                 errors.append(f"non-public output file: {relative}")
                 continue
             files.append(path)

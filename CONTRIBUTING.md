@@ -165,7 +165,7 @@ maintainer to merge contributions once validation passes. Review scope, claims,
 evidence, privacy, rights and integration, plus required checks against the actual
 PR head. If it changes, validate the new revision. Stop for blockers; passing
 checks alone is insufficient. This does not authorize contributors to merge,
-Protocol releases or deployment of the local v2 redesign.
+Protocol releases, unrelated deployments or redesigns without operator approval.
 
 The `Publish reading site` workflow checks PRs but does not deploy them or host
 PR previews. Merging to `main` triggers GitHub Pages publication. Approval or

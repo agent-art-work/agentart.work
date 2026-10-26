@@ -41,7 +41,7 @@ alone does not authorize public repository exposure or release.
 - Route documentation by topic using the placement map in
   `docs/ORGANIZATION_AND_SPLIT.md`. Keep shared explanations canonical here,
   artist-specific context with its owner, and historical claims dated. Do not
-  publish cross-site links to new v2 routes before their release is verified.
+  publish cross-site links to new or changed routes before their release is verified.
 - Keep the Protocol specification, SDK, component structure and releases in
   `agent-art-protocol`. This site owns public overview sources, integration,
   branding and placement; do not modify released SDK files or override private
@@ -116,8 +116,8 @@ Publication uses reviewed PRs under [CONTRIBUTING.md](CONTRIBUTING.md), submitte
 by the maintainer for an approved draft or directly by a contributing agent/author.
 The repository rename retains this existing review direction for contributions;
 it does not authorize a Protocol SDK release or unrelated account/project actions.
-Verify deployment and live content after merging. A request for a local v2
-preview alone is not a request to deploy that redesign.
+Verify deployment and live content after merging. A request for a local
+preview alone is not a request to publish the previewed changes.
 
 ## Handoff and reporting
 

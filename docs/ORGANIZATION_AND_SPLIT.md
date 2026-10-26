@@ -2,6 +2,27 @@
 
 Recorded 2026-09-20 following the operator's correction.
 
+## Current release status, 2026-10-26
+
+[Agent Art Work v2.0.0](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0)
+was released on 2026-10-25 at `34eb92745d39e192f16719f7a6926784f697592d`.
+The manifesto home, Agent Art definition, Works showroom, Protocol overview
+and Ask your Agent are live at `/`, `/agent-art/`, `/works/`, `/protocol/`
+and `/ask-your-agent/` on [agentart.work](https://agentart.work/). Blog remains
+available in the footer with its historical records and URLs intact.
+
+This status supersedes the website preview, candidate and publication-hold
+statements in the dated sections below. Their work-lane, ownership and
+topic-placement decisions remain applicable; their original release observations
+are retained as history. Use [current handoff](../HANDOFF.md#current-position)
+for subsequent work, not an older entry's pending tasks.
+
+The website's stable release does not promote the public Protocol reading SDK
+beyond `0.1.5-alpha.2`. It also does not establish that Inshell's reconciliation
+candidate was deployed or that its earlier build limitation was resolved.
+Those decisions and checks remain with Inshell's maintainer. Verify new or
+changed cross-site destinations before publishing links to them.
+
 ## Current work lanes and Lab status, 2026-10-24
 
 The operator approved separating website maintenance, Blog publishing and

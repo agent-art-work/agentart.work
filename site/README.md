@@ -4,6 +4,11 @@ This repository owns the complete `agentart.work` website. The public identity
 is **Agent Art Work**; Blog carries the former Lab publication. The separate
 protocol repository owns SDK implementation and releases.
 
+The stable website baseline is
+[v2.0.0](https://github.com/agent-art-work/agentart.work/releases/tag/v2.0.0),
+released and verified on agentart.work on 2026-10-25 at `34eb927`.
+The bundled Protocol SDK retains its separate `0.1.5-alpha.2` designation.
+
 Start from [AGENTS](../AGENTS.md) and [current status](../HANDOFF.md#current-position),
 then read the sources relevant to the requested website change. This is the
 website-maintenance lane: verify pages, links, source exports and behavior as
@@ -13,7 +18,7 @@ follow [Contribute](../CONTRIBUTING.md); a chosen research inquiry may use
 
 ## Pages and navigation
 
-On `codex/manifesto-home`, the homepage renders the complete locked manifesto
+The released homepage renders the complete locked manifesto
 from `docs/MANIFESTO.md`. “Agent Art Manifesto” is the headline; the opening
 paragraph uses the same bold style as the three emphatic turns. The declaration
 has only title, bold and regular type. Light mode uses black text on white; dark mode uses warm light text on charcoal.
@@ -60,7 +65,7 @@ source and rendered-content checks guard against accidental edits.
 `/agent-art/` renders `docs/AGENT_ART.md`: the definition, learned intention,
 equal artistic standing, artistic freedom, evidence and audience judgment.
 Both texts are complete indexed sources. The manifesto's wording stays fixed
-while design and placement can be reviewed separately in this local preview.
+while design and placement can be reviewed through separate website changes.
 
 `/blog/` is the only chronological article feed. Its slogan remains “Articles,
 studies and working notes on Agent Art.” Existing article URLs are unchanged.
@@ -86,8 +91,8 @@ available as the shared reading control, with its explanation linked from
 Protocol and About; it has no top-menu item.
 On mobile the five links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
 remains linked from About. Article source
-and history links point at `agent-art-work/agentart.work`. The footer retains
-agent discovery and contributor links alongside the umbrella identity.
+and history links point at `agent-art-work/agentart.work`. Technical retrieval
+links remain on Ask your Agent; contribution guidance is linked from Blog.
 
 ## Appearance
 
@@ -119,10 +124,12 @@ The label underlines on hover; the three actions underline by default and
 remove it on hover. Hover hints and the three-second inline confirmation remain.
 The tuning desk is internal design material and is not part of the v2 pages.
 
-The v2 website shipped as `v2.0.0-rc.1`; SDK `0.1.5-alpha.2` was subsequently
-deployed through [PR #13](https://github.com/agent-art-work/agentart.work/pull/13).
-See HANDOFF for the current local work and remaining release steps.
-Historical release records below retain their dates.
+The release candidate `v2.0.0-rc.1` was followed by the public SDK integration
+in [PR #13](https://github.com/agent-art-work/agentart.work/pull/13), cache
+compatibility fixes and the stable v2.0.0 website release. See
+[current handoff](../HANDOFF.md#current-position) for release evidence and
+subsequent work. Historical qualification and rollout records below retain
+their original dates and status; they are not pending release instructions.
 
 ## Selected reading typography
 
@@ -141,12 +148,16 @@ Bold emphasis is synthesized by the browser, matching the selected preview.
 
 ## Build and preview
 
+### Historical qualification, 2026-10-22
+
 The 2026-10-22 manifesto integration passed 27 Node and 39 Python tests,
 31-page navigation checks, and local HTTP verification of all 23 exported
 documents. Regular Chrome checks covered the new pages at desktop/phone
 widths and the retained reading controls in light/dark. Preview at port 8876.
 The reading invitation continues to reference the published domain; local
 manuscript additions are not available to a receiving Agent there until release.
+
+### Current SDK integration
 
 The integration pins public MIT `@agent-art/protocol@0.1.5-alpha.2` from
 `vendor/agent-art-protocol-0.1.5-alpha.2.tgz` (18,235 bytes), SHA-256
@@ -166,17 +177,26 @@ approved flat geometry, equal visible gaps, 14px text and stable Copy/Copied
 width are retained; narrow containers wrap label/action groups without
 shrinking the text. Label and action tints are independently transparent.
 
+### Historical rollout authorization, 2026-10-24
+
+The following record predates the completed deployment. The current integration
+is included in stable v2.0.0; its verification is recorded in the current handoff.
+
 The operator authorized this alpha integration's website rollout on 2026-10-24,
 replacing the `0.1.5-flat-label.1` integration in `v2.0.0-rc.1`. Verify the
 integration PR's deployment before treating the new version as live. Historical
 archives remain unchanged. No SDK release, registry publication or live Agent
 trial is performed by installing this site dependency.
 
+### Current reading behavior
+
 The component retains native desktop-prefill links, exact Copy with a polite
 announcement, and selected manual text on clipboard denial. The complete
 original prompt remains usable without JavaScript. Browser qualification uses
 synthetic clipboard writes and canceled native navigation; it does not claim
 a fresh receiving-app trial.
+
+### Earlier integration records (historical)
 
 Earlier released integrations: on 2026-10-21 the operator authorized committing,
 pushing and deploying the
@@ -204,6 +224,8 @@ The pushed upstream branch, lock integrity, installed package and all five live
 browser assets were verified. Upstream source remains private; inspecting that
 revision requires repository access, while the vendored package is available
 in this public Lab repository. No package bytes changed for this provenance update.
+
+### Build and preview commands
 
 Requires Node.js 22+ and Python 3.10+ for the offline checks:
 

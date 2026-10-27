@@ -9,6 +9,12 @@ The stable website baseline is
 released and verified on agentart.work on 2026-10-25 at `34eb927`.
 The bundled Protocol SDK retains its separate `0.1.5-alpha.2` designation.
 
+Local-only follow-up: [optional analytics candidate](analytics.md), disabled
+with no measurement ID in the checked-in defaults. Production-build wiring is
+prepared locally; publication, live build variables and enablement remain held.
+OPS separately reported a bounded provider diagnostic; its limits are recorded
+in the candidate guide. This is not part of the stable release.
+
 Start from [AGENTS](../AGENTS.md) and [current status](../HANDOFF.md#current-position),
 then read the sources relevant to the requested website change. This is the
 website-maintenance lane: verify pages, links, source exports and behavior as

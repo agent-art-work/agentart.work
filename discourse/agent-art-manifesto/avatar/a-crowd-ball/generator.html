@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>a-crowd-ball — Avatar generator</title>
+<style>
+:root{color-scheme:light dark;--foreground:#171717;--muted-foreground:#606060;--surface:#fff;--border:#ccc;accent-color:#707000}
+*{box-sizing:border-box}body{margin:0;padding:24px;background:var(--surface);color:var(--foreground);font:16px/1.5 system-ui,sans-serif}main{max-width:1120px;margin:auto}h1{font-size:24px;margin:0 0 8px}header p{margin:0 0 24px;color:var(--muted-foreground)}a{color:inherit}.viz-row{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.form-label{display:block;font-size:14px}.form-range{display:block;width:100%;margin:8px 0}.form-control,.form-select,.btn{font:inherit;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;max-width:100%}.form-control,.form-select{display:block;width:100%;margin-top:4px}.form-control-color{height:42px;padding:4px}.btn{cursor:pointer;display:inline-block;text-decoration:none}.btn-primary{background:#ffff00;color:#000;border-color:#878700}.form-check{display:flex;gap:8px;align-items:center}.text-small{font-size:13px}.tabular-nums{font-variant-numeric:tabular-nums}summary{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #888800;outline-offset:3px}[data-message]{min-height:1.5em}
+@media(prefers-color-scheme:dark){:root{--foreground:#eee;--muted-foreground:#aaa;--surface:#191919;--border:#555}}
+@media(max-width:600px){body{padding:16px}}
+</style>
+</head>
+<body><main>
+<header><h1>a-crowd-ball</h1><p>Adjust the dot field and export an avatar. <a href="avatar.png">View the current avatar</a>.</p></header>
+<div id="agent-dot-studio">
+  <div class="ds-toolbar viz-row">
+    <label class="form-label">Preview <select class="form-select" data-key="crop"><option value="square">Full square</option><option value="circle">Circular avatar</option></select></label>
+    <button class="btn" type="button" data-spotlight>Reference circular light</button>
+  </div>
+  <div class="ds-layout">
+    <div class="ds-art">
+      <canvas data-canvas width="1024" height="1024" role="img" aria-label="Generated dot artwork"></canvas>
+      <div class="ds-caption text-small tabular-nums" data-stats aria-live="polite"></div>
+    </div>
+    <div class="ds-controls">
+      <label class="form-label">Step spacing <output data-value="step"></output><input class="form-range" data-key="step" type="range" min="8" max="90" step="1"></label>
+      <label class="form-label">Dot diameter <output data-value="size"></output><input class="form-range" data-key="size" type="range" min="2" max="64" step="1"></label>
+      <label class="form-label">Area <output data-value="area"></output><input class="form-range" data-key="area" type="range" min="10" max="100" step="1"></label>
+      <label class="form-label">Dot instances limit <input class="form-control" data-key="limit" type="number" min="0" max="12000" step="100"></label>
+      <label class="form-label">Highlight density <output data-value="density"></output><input class="form-range" data-key="density" type="range" min="0" max="300" step="1"></label>
+      <label class="form-label">Gradient type <select class="form-select" data-key="gradient"><option value="spotlight">Circular light · dark surround</option><option value="organic">Organic spotlight</option><option value="linear">Linear</option><option value="radial">Radial</option><option value="sphere">Sphere light</option><option value="rings">Rings</option><option value="uniform">Uniform</option></select></label>
+      <label class="form-label">Arrangement <select class="form-select" data-key="layout"><option value="organic">Organic spacing</option><option value="hex">Hexagonal</option><option value="grid">Square grid</option></select></label>
+    </div>
+  </div>
+  <details class="ds-details" open>
+    <summary>Gradient and color</summary>
+    <div class="ds-fields">
+      <label class="form-label">Shadow density <output data-value="shadow"></output><input class="form-range" data-key="shadow" type="range" min="0" max="100" step="1"></label>
+      <label class="form-label">Contrast <output data-value="contrast"></output><input class="form-range" data-key="contrast" type="range" min="0.2" max="5" step="0.1"></label>
+      <label class="form-label">Direction <output data-value="angle"></output><input class="form-range" data-key="angle" type="range" min="0" max="360" step="1"></label>
+      <label class="form-label">Highlight X <output data-value="cx"></output><input class="form-range" data-key="cx" type="range" min="0" max="100" step="1"></label>
+      <label class="form-label">Highlight Y <output data-value="cy"></output><input class="form-range" data-key="cy" type="range" min="0" max="100" step="1"></label>
+      <label class="form-label" data-spotlight-field>Light radius <output data-value="radius"></output><input class="form-range" data-key="radius" type="range" min="5" max="100" step="1"></label>
+      <label class="form-label" data-spotlight-field>Edge softness <output data-value="softness"></output><input class="form-range" data-key="softness" type="range" min="1" max="100" step="1"></label>
+      <label class="form-label">Gradient spread <output data-value="spread"></output><input class="form-range" data-key="spread" type="range" min="20" max="200" step="1"></label>
+      <label class="form-label">Dot color <input class="form-control form-control-color" data-key="dot" type="color"></label>
+      <label class="form-label">Background <input class="form-control form-control-color" data-key="background" type="color"></label>
+      <label class="form-check"><input class="form-check-input" data-key="invert" type="checkbox"><span class="form-check-label">Invert gradient</span></label>
+      <label class="form-check"><input class="form-check-input" data-key="overlap" type="checkbox"><span class="form-check-label">Allow overlapping dots</span></label>
+      <label class="form-label">Pattern seed <input class="form-control" data-key="seed" type="number" min="1" max="999999" step="1"></label>
+      <button class="btn" type="button" data-reseed>New dot arrangement</button>
+    </div>
+  </details>
+  <div class="ds-fields ds-export">
+    <label class="form-label">Export size <select class="form-select" data-key="resolution"><option value="512">512 × 512</option><option value="1024">1024 × 1024</option><option value="1254">1254 × 1254</option><option value="2048">2048 × 2048</option><option value="4096">4096 × 4096</option></select></label>
+    <div class="viz-row"><button class="btn btn-primary" type="button" data-png>Export PNG</button><button class="btn" type="button" data-svg>Export SVG</button></div>
+  </div>
+  <div data-message class="text-small" role="status" aria-live="polite"></div>
+  <details data-export-preview hidden>
+    <summary>Exported image preview · save image if download is unavailable</summary>
+    <img data-export-image alt="Exported dot image" style="display:block;width:100%;max-width:512px;height:auto">
+    <a class="btn" data-download download>Save exported file</a>
+  </details>
+</div>
+<style>
+#agent-dot-studio{color:var(--foreground);font-family:inherit;max-width:100%}
+#agent-dot-studio .ds-toolbar{justify-content:space-between;margin-bottom:16px;padding-right:90px}
+#agent-dot-studio .ds-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(220px,1fr);gap:24px;align-items:start}
+#agent-dot-studio .ds-art{min-width:0}
+#agent-dot-studio canvas{width:100%;height:auto;display:block;aspect-ratio:1}
+#agent-dot-studio .ds-caption{margin-top:10px;color:var(--muted-foreground)}
+#agent-dot-studio .ds-controls{display:grid;gap:10px;min-width:0}
+#agent-dot-studio output{float:right;font-variant-numeric:tabular-nums}
+#agent-dot-studio .ds-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px;margin-top:14px;align-items:end}
+#agent-dot-studio .ds-details{margin-top:22px}
+#agent-dot-studio summary{color:var(--foreground)}
+#agent-dot-studio .ds-export{margin:20px 0 12px}
+@media(max-width:600px){#agent-dot-studio .ds-layout{grid-template-columns:1fr;gap:20px}#agent-dot-studio .ds-fields{grid-template-columns:1fr}#agent-dot-studio .ds-toolbar{padding-right:0;justify-content:flex-start}#agent-dot-studio .ds-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
+@media(max-width:380px){#agent-dot-studio .ds-controls{grid-template-columns:1fr}}
+</style>
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("agent-dot-studio");
+  if (!root) return;
+  function find(selector) { return root.querySelector(selector); }
+  var canvas = find("[data-canvas]");
+  var defaults = {step:22,size:24,area:100,limit:10000,density:230,gradient:"spotlight",layout:"organic",shadow:1,contrast:1.2,angle:315,cx:62,cy:37,spread:110,radius:48,softness:58,dot:"#ffff00",background:"#000000",invert:false,overlap:true,seed:612921,crop:"square",resolution:1254};
+  var ranges = {step:[8,90],size:[2,64],area:[10,100],limit:[0,12000],density:[0,300],shadow:[0,100],contrast:[0.2,5],angle:[0,360],cx:[0,100],cy:[0,100],spread:[20,200],radius:[5,100],softness:[1,100],seed:[1,999999],resolution:[512,4096]};
+  var choices = {gradient:["spotlight","organic","linear","radial","sphere","rings","uniform"],layout:["organic","hex","grid"],crop:["square","circle"]};
+  function sanitize(input) {
+    var result = Object.assign({}, defaults);
+    if (!input || typeof input !== "object") return result;
+    Object.keys(result).forEach(function (key) {
+      var value = input[key];
+      if (ranges[key] && value !== null && Number.isFinite(Number(value))) {
+        result[key] = Math.min(ranges[key][1], Math.max(ranges[key][0], Number(value)));
+      } else if (choices[key] && choices[key].indexOf(value) !== -1) {
+        result[key] = value;
+      } else if (typeof result[key] === "boolean" && typeof value === "boolean") {
+        result[key] = value;
+      } else if ((key === "dot" || key === "background") && /^#[0-9a-f]{6}$/i.test(value)) {
+        result[key] = value;
+      }
+    });
+    result.limit = Math.round(result.limit);
+    result.seed = Math.round(result.seed);
+    return result;
+  }
+  function readSettings(widget) {
+    return widget && widget.modelContent && widget.modelContent.settings;
+  }
+  var initialSettings;
+  try { initialSettings = readSettings(window.openai && window.openai.widgetState); } catch (error) {}
+  if (!initialSettings) initialSettings = {"step":31,"size":28,"area":100,"limit":10000,"density":239,"gradient":"spotlight","layout":"organic","shadow":1,"contrast":0.7,"angle":315,"cx":68,"cy":30,"spread":89,"radius":64,"softness":57,"dot":"#ffff00","background":"#000000","invert":false,"overlap":true,"seed":612921,"crop":"square","resolution":1254};
+  var state = sanitize(initialSettings);
+  var points = [];
+  var frame = 0;
+  var blobURL = null;
+  function rng(seed) {
+    return function () {
+      seed |= 0;
+      seed = (seed + 0x6D2B79F5) | 0;
+      var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(value) { return Math.max(0, Math.min(1, value)); }
+  function intensity(x, y) {
+    var angle = state.angle * Math.PI / 180;
+    var spread = state.spread / 100;
+    var dx = x - state.cx / 100;
+    var dy = y - state.cy / 100;
+    var distance = Math.hypot(dx, dy);
+    var g = 1;
+    if (state.gradient === "linear") {
+      g = 0.5 + ((x - 0.5) * Math.cos(angle) + (y - 0.5) * Math.sin(angle)) / (Math.SQRT2 * spread);
+    }
+    if (state.gradient === "radial" || state.gradient === "organic") g = 1 - distance / spread;
+    if (state.gradient === "organic") g += 0.065 * Math.sin(x * 9 + y * 5) + 0.045 * Math.cos(y * 12 - x * 4);
+    if (state.gradient === "spotlight") {
+      var radius = state.radius / 100;
+      var inner = radius * (1 - state.softness / 100);
+      var t = clamp((distance - inner) / Math.max(0.001, radius - inner));
+      g = 1 - t * t * (3 - 2 * t);
+    }
+    if (state.gradient === "rings") g = (1 + Math.cos(distance * 4 * Math.PI / spread)) / 2;
+    if (state.gradient === "sphere") {
+      var nx = (x - 0.5) * 1.414;
+      var ny = (y - 0.5) * 1.414;
+      var nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+      g = clamp((nx * Math.cos(angle) * 0.85 + ny * Math.sin(angle) * 0.85 + nz * 0.5 + 0.1) / spread);
+    }
+    g = clamp(g);
+    if (state.invert) g = 1 - g;
+    return state.shadow / 100 + (1 - state.shadow / 100) * Math.pow(g, state.contrast);
+  }
+  function generate() {
+    var random = rng(state.seed);
+    var side = 1024 * state.area / 100;
+    var start = (1024 - side) / 2;
+    var end = start + side;
+    var cap = state.limit;
+    points = [];
+    if (state.density === 0 || cap === 0) return;
+    var spacing = state.step / Math.sqrt(state.density / 100);
+    if (!state.overlap) spacing = Math.max(spacing, state.size);
+    var minSep = spacing * 0.82;
+    var cell = minSep / Math.sqrt(0.035);
+    var grid = new Map();
+    function place(x, y, d) {
+      var gx = Math.floor(x / cell);
+      var gy = Math.floor(y / cell);
+      for (var ix = gx - 1; ix <= gx + 1; ix++) {
+        for (var iy = gy - 1; iy <= gy + 1; iy++) {
+          var bucket = grid.get(ix + "," + iy);
+          if (!bucket) continue;
+          for (var k = 0; k < bucket.length; k++) {
+            var point = bucket[k];
+            var separation = state.overlap ? (d + point.d) / 2 : Math.max(state.size, (d + point.d) / 2);
+            var dx = x - point.x;
+            var dy = y - point.y;
+            if (dx * dx + dy * dy < separation * separation) return false;
+          }
+        }
+      }
+      var p = {x:x,y:y,d:d};
+      points.push(p);
+      var key = gx + "," + gy;
+      if (!grid.has(key)) grid.set(key, []);
+      grid.get(key).push(p);
+      return true;
+    }
+    if (state.layout === "organic") {
+      var attempts = Math.min(260000, Math.ceil(side * side / (spacing * spacing) * 110));
+      for (var i = 0; i < attempts && points.length < cap; i++) {
+        var x = start + random() * side;
+        var y = start + random() * side;
+        var weight = intensity(x / 1024, y / 1024);
+        if (weight === 0 || random() > Math.sqrt(weight)) continue;
+        place(x, y, minSep / Math.sqrt(Math.max(0.035, weight)));
+      }
+    } else {
+      var rowStep = spacing * (state.layout === "hex" ? Math.sqrt(3) / 2 : 1);
+      var cols = Math.ceil(side / spacing) + 1;
+      var rows = Math.ceil(side / rowStep) + 1;
+      var candidates = [];
+      for (var row = 0; row <= rows; row++) {
+        var py = start + row * rowStep;
+        if (py > end) continue;
+        for (var col = 0; col <= cols; col++) {
+          var offset = state.layout === "hex" && row % 2 ? 0.5 : 0;
+          var px = start + (col + offset) * spacing;
+          if (px > end) continue;
+          if (random() < intensity(px / 1024, py / 1024)) candidates.push({x:px,y:py});
+        }
+      }
+      for (var n = candidates.length - 1; n > 0; n--) {
+        var j = Math.floor(random() * (n + 1));
+        var temp = candidates[n];
+        candidates[n] = candidates[j];
+        candidates[j] = temp;
+      }
+      points = candidates.slice(0, cap);
+    }
+  }
+  function draw(target, size) {
+    target.width = size;
+    target.height = size;
+    var context = target.getContext("2d");
+    if (!context) throw new Error("Canvas is unavailable.");
+    context.clearRect(0, 0, size, size);
+    context.save();
+    context.scale(size / 1024, size / 1024);
+    if (state.crop === "circle") {
+      context.beginPath();
+      context.arc(512, 512, 512, 0, Math.PI * 2);
+      context.clip();
+    }
+    context.fillStyle = state.background;
+    context.fillRect(0, 0, 1024, 1024);
+    context.fillStyle = state.dot;
+    context.beginPath();
+    points.forEach(function (point) {
+      context.moveTo(point.x + state.size / 2, point.y);
+      context.arc(point.x, point.y, state.size / 2, 0, Math.PI * 2);
+    });
+    context.fill();
+    context.restore();
+  }
+  function sync() {
+    root.querySelectorAll("[data-key]").forEach(function (element) {
+      var key = element.dataset.key;
+      if (element.type === "checkbox") element.checked = state[key];
+      else element.value = state[key];
+    });
+    var units = {step:" px",size:" px",area:"%",density:"%",shadow:"%",contrast:"×",angle:"°",cx:"%",cy:"%",spread:"%",radius:"%",softness:"%"};
+    root.querySelectorAll("[data-value]").forEach(function (element) {
+      var key = element.dataset.value;
+      element.textContent = state[key] + (units[key] || "");
+    });
+  }
+  function render() {
+    generate();
+    draw(canvas, 1024);
+    canvas.setAttribute("aria-label", points.length + " equal-size " + state.dot + " dots on " + state.background + "; " + state.gradient + " gradient; " + state.crop + " crop");
+    find("[data-stats]").textContent = points.length.toLocaleString() + " dots" + (points.length >= state.limit && state.limit > 0 ? " · instance limit reached" : "") + " · " + state.size + "px diameter at 1024px";
+  }
+  function save() {
+    try {
+      if (window.openai && typeof window.openai.setWidgetState === "function") {
+        var pending = window.openai.setWidgetState({modelContent:{settings:Object.assign({}, state),dotCount:points.length},privateContent:null});
+        if (pending && typeof pending.catch === "function") pending.catch(function () {});
+      }
+    } catch (error) {}
+  }
+  function update() {
+    sync();
+    if (frame) cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(function () {
+      frame = 0;
+      render();
+      save();
+    });
+  }
+  root.querySelectorAll("[data-key]").forEach(function (element) {
+    element.addEventListener("input", function () {
+      if (element.type === "number" && element.value === "") return;
+      var value = element.type === "checkbox" ? element.checked : (element.type === "range" || element.type === "number" ? Number(element.value) : element.value);
+      var next = Object.assign({}, state);
+      next[element.dataset.key] = value;
+      state = sanitize(next);
+      find("[data-export-preview]").hidden = true;
+      find("[data-message]").textContent = "";
+      update();
+    });
+  });
+  find("[data-spotlight]").addEventListener("click", function () {
+    state = sanitize(Object.assign({}, state, defaults, {crop:state.crop,resolution:state.resolution}));
+    find("[data-export-preview]").hidden = true;
+    find("[data-message]").textContent = "";
+    update();
+  });
+  find("[data-reseed]").addEventListener("click", function () {
+    state.seed = 1 + Math.floor(Math.random() * 999998);
+    update();
+  });
+  function finishExport(url, filename, kind, preview) {
+    var link = find("[data-download]");
+    link.href = url;
+    link.download = filename;
+    link.textContent = "Save " + kind;
+    find("[data-export-image]").src = preview;
+    find("[data-export-preview]").hidden = false;
+    find("[data-export-preview]").open = true;
+    find("[data-message]").textContent = kind + " ready · " + state.resolution + " × " + state.resolution + "px · " + (state.crop === "circle" ? "transparent corners" : "full square") + ".";
+    link.click();
+  }
+  find("[data-png]").addEventListener("click", function () {
+    try {
+      render();
+      var output = document.createElement("canvas");
+      draw(output, state.resolution);
+      var url = output.toDataURL("image/png");
+      finishExport(url, "agent-art-dots-" + state.seed + "-" + state.crop + ".png", "PNG", url);
+    } catch (error) {
+      find("[data-message]").textContent = "Image export failed. Try a smaller export size.";
+    }
+  });
+  find("[data-svg]").addEventListener("click", function () {
+    try {
+      render();
+      var namespace = "http://www.w3.org/2000/svg";
+      function svgElement(name, attributes) {
+        var element = document.createElementNS(namespace, name);
+        Object.keys(attributes || {}).forEach(function (key) {
+          element.setAttribute(key, String(attributes[key]));
+        });
+        return element;
+      }
+      var svg = svgElement("svg", {width:state.resolution,height:state.resolution,viewBox:"0 0 1024 1024"});
+      if (state.crop === "circle") {
+        var defs = svgElement("defs");
+        var clip = svgElement("clipPath", {id:"avatar"});
+        clip.appendChild(svgElement("circle", {cx:512,cy:512,r:512}));
+        defs.appendChild(clip);
+        svg.appendChild(defs);
+      }
+      var group = svgElement("g");
+      if (state.crop === "circle") group.setAttribute("clip-path", "url(#avatar)");
+      group.appendChild(svgElement("path", {fill:state.background,d:"M0 0h1024v1024H0z"}));
+      var dots = svgElement("g", {fill:state.dot});
+      points.forEach(function (point) {
+        dots.appendChild(svgElement("circle", {cx:point.x.toFixed(3),cy:point.y.toFixed(3),r:state.size / 2}));
+      });
+      group.appendChild(dots);
+      svg.appendChild(group);
+      var source = new XMLSerializer().serializeToString(svg);
+      if (blobURL) URL.revokeObjectURL(blobURL);
+      blobURL = URL.createObjectURL(new Blob([source], {type:"image/svg+xml"}));
+      finishExport(blobURL, "agent-art-dots-" + state.seed + "-" + state.crop + ".svg", "SVG", canvas.toDataURL("image/png"));
+    } catch (error) {
+      find("[data-message]").textContent = "Image export failed. Try a smaller export size.";
+    }
+  });
+  window.addEventListener("openai:set_globals", function (event) {
+    var detail = event.detail;
+    var settings = readSettings(detail && detail.globals && detail.globals.widgetState);
+    if (!settings) return;
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    state = sanitize(settings);
+    sync();
+    render();
+  });
+  sync();
+  render();
+})();
+</script>
+
+</main></body>
+</html>

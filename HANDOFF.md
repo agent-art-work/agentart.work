@@ -149,6 +149,17 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-10-27 repository maintenance, **social media avatar archive**: corrected
+  `discourse/agent-art-manifesto/avatart/` to
+  [avatar](discourse/agent-art-manifesto/avatar/README.md) and imported the agreed
+  prototypes and concept. The README identifies only the current yellow organic
+  `a-crowd-ball` avatar. Its supplied PNG and crowd comparison are preserved
+  unchanged; `a-dot-shift` retains the original yellow-on-black single-dot PNG.
+  The standalone generator preserves the Page algorithm and controls and opens
+  with its saved settings; the current supplied image remains authoritative.
+  PNG/SVG exports and controls were verified in Chrome. Package checks, 77 Python
+  tests and 64 Node tests pass. No website catalogue route was added.
+
 - 2026-10-26 website maintenance, **local production-build wiring**: OPS
   authorized local completion of the reviewed analytics candidate after its
   separate provider setup and bounded native diagnostic. Prepared an explicit

@@ -90,7 +90,7 @@ Repository visibility is public. No reuse license has been selected. See the
 
 ## Discourse
 
-The [discourse workspace](discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. It includes the Agent Art case, dated screening, reusable templates and a proposed first trial. No participation trial has been run.
+The [discourse workspace](discourse/agent-art-manifesto/discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. It includes the Agent Art case, dated screening, reusable templates and a proposed first trial. No participation trial has been run.
 
 ## Lab history and optional research
 

@@ -10,6 +10,6 @@ This is a draft method for learning through discussion. The Agent Art Manifesto 
 4. Start with the [Agent Art case](cases/agent-art/README.md) and its proposed first trial.
 5. Save selected lessons with the [trial report](templates/trial-report.md).
 
-See [contributing](CONTRIBUTING.md), [changes](CHANGELOG.md) and the [structure decision](decisions/0001-repository-structure.md). The existing [manifesto avatar work](agent-art-manifesto/avatar/README.md) remains in place.
+See [contributing](CONTRIBUTING.md), [changes](CHANGELOG.md) and the [structure decision](decisions/0001-repository-structure.md). The existing [manifesto avatar work](../avatar/README.md) remains in place.
 
-Status: discourse method draft 0.1.0, within the existing website repository; no separate release or license has been created. Repository publication does not grant reuse rights; see the root [publication rules](../README.md#publication-and-reuse).
+Status: discourse method draft 0.1.0, within the existing website repository; no separate release or license has been created. Repository publication does not grant reuse rights; see the root [publication rules](../../../README.md#publication-and-reuse).

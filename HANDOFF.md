@@ -151,7 +151,7 @@ the respective maintainers' release authority.
 
 ### Discourse structure — 29 October 2026
 
-Lane: optional research documentation, implementing the operator-approved discourse plan. The [discourse workspace](discourse/README.md) now contains both routes, platform guides, the Agent Art mapping, an exact manifesto snapshot, inherited 28 October screening, templates and an unrun Q06 trial proposal. No live participation or new web verification occurred. Existing website sources and manifesto wording are unchanged. Next action: review this structure, then check three communities before selecting and authorizing live A/B trials. No new license or website release is introduced.
+Lane: optional research documentation, implementing the operator-approved discourse plan. The [discourse workspace](discourse/agent-art-manifesto/discourse/README.md) now contains both routes, platform guides, the Agent Art mapping, an exact manifesto snapshot, inherited 28 October screening, templates and an unrun Q06 trial proposal. No live participation or community re-verification occurred. The GitHub directory structure was checked on 29 October, and the draft was placed in the existing `discourse/agent-art-manifesto/discourse/` folder beside `avatar/`. Existing website sources and manifesto wording are unchanged. Next action: review this structure, then check three communities before selecting and authorizing live A/B trials. No new license or website release is introduced.
 
 
 - 2026-10-27 repository maintenance, **social media avatar archive**: corrected

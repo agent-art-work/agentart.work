@@ -16,3 +16,6 @@ _site/
 /vendor/agent-art-protocol-0.1.3.tgz
 /vendor/agent-art-protocol-0.1.4.tgz
 /vendor/agent-art-protocol-0.1.5-flat-label.0.tgz
+
+# Routine discourse drafts and search logs.
+work/

@@ -149,6 +149,11 @@ the respective maintainers' release authority.
 
 ## Current position
 
+### Discourse structure — 29 October 2026
+
+Lane: optional research documentation, implementing the operator-approved discourse plan. The [discourse workspace](discourse/README.md) now contains both routes, platform guides, the Agent Art mapping, an exact manifesto snapshot, inherited 28 October screening, templates and an unrun Q06 trial proposal. No live participation or new web verification occurred. Existing website sources and manifesto wording are unchanged. Next action: review this structure, then check three communities before selecting and authorizing live A/B trials. No new license or website release is introduced.
+
+
 - 2026-10-27 repository maintenance, **social media avatar archive**: corrected
   `discourse/agent-art-manifesto/avatart/` to
   [avatar](discourse/agent-art-manifesto/avatar/README.md) and imported the agreed

@@ -1,6 +1,6 @@
 # 0001: keep discourse in the existing repository
 
-Date: 29 October 2026. Status: implemented draft for review.
+Date: 29 October 2026. Status: placement superseded by [0002](0002-public-discourse-layout.md); retained as the initial decision.
 
 The operator approved the Page's long-term discourse structure and requested implementation in `agent-art-work/agentart.work`. The repository already owns the website, canonical manifesto and contribution process. Its `discourse/agent-art-manifesto/` collection has sibling `avatar/` and `discourse/` folders; the latter initially contains only `.gitkeep`.
 

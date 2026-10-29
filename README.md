@@ -88,9 +88,9 @@ Repository visibility is public. No reuse license has been selected. See the
 | [Boundaries](docs/BOUNDARIES.md) | The inherited Lab method, project tooling, live trials, canaries and releases have different aims. |
 | [Provenance](PROVENANCE.json) | Source-document identities and changes made for this portable edition. |
 
-## Discourse
+## Public discourse
 
-The [discourse workspace](discourse/agent-art-manifesto/discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. It includes the Agent Art case, dated screening, reusable templates and a proposed first trial. No participation trial has been run.
+The [discourse workspace](public-discourse/manifesto-discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. It includes the Agent Art case, dated screening, reusable templates and a proposed first trial. No participation trial has been run. The companion [avatar collection](public-discourse/avatar/README.md) holds the social media avatar work.
 
 ## Lab history and optional research
 

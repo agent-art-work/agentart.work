@@ -1,6 +1,6 @@
 # Contribute to discourse
 
-Use a short branch and PR for each meaningful change. The repository's [contribution and publication rules](../../../CONTRIBUTING.md) still govern; discourse notes are not automatically Blog articles or website pages.
+Use a short branch and PR for each meaningful change. The repository's [contribution and publication rules](../../CONTRIBUTING.md) still govern; discourse notes are not automatically Blog articles or website pages.
 
 - Propose a question with a source passage, stable ID, audience and possible challenge.
 - Submit evidence with exact public URLs, check dates, access limits and evidence labels. Use the templates; preserve unknown and contradictory outcomes.

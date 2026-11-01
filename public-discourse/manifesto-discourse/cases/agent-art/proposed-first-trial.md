@@ -2,8 +2,10 @@
 
 Question: **Q06**, what should people show about the human and AI parts? Source: [snapshot and version](source/provenance.md). Operator selects the participant and authorizes any posting separately.
 
-1. Screen Reddit, Substack and LessWrong with the same question, using the [platform check](../../templates/platform-check.md). Spend up to 20 minutes per community; read up to five relevant threads. Save queries, dates, exact links and smaller samples.
-2. Decide keep / more checks / skip separately for A and B. Choose one allowed live opening for A and one original publishing place for B. Both destinations remain unselected until checked.
+Updated 1 November 2026 to follow the [medium-term Reddit plan](reddit-plan.md). The earlier proposal compared Reddit, Substack and LessWrong. This revision uses Reddit first and preserves the separate join/create routes; the broader comparison can be revisited later. No trial has been run.
+
+1. Recheck r/aiwars for the first discussion-led introduction, and r/generativeAI as the next candidate, using the [platform check](../../templates/platform-check.md) and [right-place assessment](right-places.md). Read relevant current threads and replies, record rules, dates, exact links and access gaps, and check the intended account. The community choices are recommendations pending those checks.
+2. Decide keep / more checks / skip separately for A and B. Select one allowed current thread for A and an allowed original-post destination for B. Begin with one community; review the first response before expanding. Original posts should stand alone, disclose the author's connection and link the full manifesto where allowed. Actual destinations remain unselected until checked.
 3. Prepare one point and one question for each route. A responds to the actual thread; B must stand alone and name a way for readers to find it.
 4. Before posting, record the method commit and planned seven-day review period. If feasible, use the same example across routes; different audiences and distribution mean this is exploratory, not a causal experiment.
 5. Review reasons, counterexamples, continued exchange and time spent. Record reach when available; silence with low reach calls for a distribution test. Save selected lessons with the [trial report](../../templates/trial-report.md).

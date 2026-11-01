@@ -149,6 +149,10 @@ the respective maintainers' release authority.
 
 ## Current position
 
+### Medium-term Reddit plan — 1 November 2026
+
+Lane: optional research documentation. The operator requested a summary of the agreed Reddit direction, a repository update and push. The [Reddit plan](public-discourse/manifesto-discourse/cases/agent-art/reddit-plan.md) covers joining/creating discussions, introducing/announcing the manifesto, one maintained full-text address, tailored introductions across suitable communities and review after an initial seven-day period. [Right places](public-discourse/manifesto-discourse/cases/agent-art/right-places.md) now retains the original four Page-reported communities and nine additional direct browser checks from the preceding discovery. The first-trial proposal is aligned to Reddit first, with r/aiwars for the initial discussion-led introduction and r/generativeAI as the next candidate. The plan is linked prominently from repository, workspace and case indexes. No Reddit post, reply, subscription, membership action or schedule was created. Intended-account eligibility and post acceptance remain untested. Publish the checked documentation directly to `main` under the operator's direction. Next: select a participant and one concrete example or clearly labelled proposal, then prepare the first native Reddit post and verify its exact destination before any separately authorized posting.
+
 ### Discourse Right Place update — 1 November 2026
 
 Delivery: publish this checked update directly to `main`, following the operator's existing discourse direction. PR #20 is superseded by direct publication. The discourse [contribution guide](public-discourse/manifesto-discourse/CONTRIBUTING.md) now makes that direction explicit for future operator-requested maintenance; outside contributions and explicitly requested or required PRs retain the review path.

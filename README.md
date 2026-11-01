@@ -90,7 +90,7 @@ Repository visibility is public. No reuse license has been selected. See the
 
 ## Public discourse
 
-The [discourse workspace](public-discourse/manifesto-discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. It includes the Agent Art case, dated screening, reusable templates and a proposed first trial. No participation trial has been run. The companion [avatar collection](public-discourse/avatar/README.md) holds the social media avatar work.
+The [discourse workspace](public-discourse/manifesto-discourse/README.md) develops a method for joining existing discussions and creating original content that invites discussion. Start with the current [medium-term Reddit plan](public-discourse/manifesto-discourse/cases/agent-art/reddit-plan.md) for the Agent Art Manifesto. The workspace includes dated audience assessments, reusable templates and a proposed first trial. No participation trial has been run. The companion [avatar collection](public-discourse/avatar/README.md) holds the social media avatar work.
 
 ## Lab history and optional research
 

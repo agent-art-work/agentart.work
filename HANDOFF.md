@@ -151,6 +151,8 @@ the respective maintainers' release authority.
 
 ### Discourse Right Place update — 1 November 2026
 
+Delivery: publish this checked update directly to `main`, following the operator's existing discourse direction. PR #20 is superseded by direct publication. The discourse [contribution guide](public-discourse/manifesto-discourse/CONTRIBUTING.md) now makes that direction explicit for future operator-requested maintenance; outside contributions and explicitly requested or required PRs retain the review path.
+
 Lane: optional research documentation, importing the operator-requested Right Place section from the Discourse Page. The [right-place assessment](public-discourse/manifesto-discourse/cases/agent-art/right-places.md) records four Reddit communities with introductions, follow recommendations, reported rules, suitable angles and manifesto publication fit. The shared workflow, Reddit guide and platform-check template now look for communities, groups and accounts worth following alongside individual discussions. The Page reports live feed/sidebar checks on 1 November; this import did not independently recheck Reddit. Account eligibility and acceptance of a specific post remain untested. No account follows, joins, posts or replies occurred. Next: recheck r/aiwars rules and intended-account eligibility, then prepare one concrete example and proposed text for a separately authorized publication test. The historical 28 October screening and unrun A/B proposal retain their original scope.
 
 ### Discourse structure — 29 October 2026

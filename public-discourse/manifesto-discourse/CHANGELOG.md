@@ -5,6 +5,7 @@
 - Added the Agent Art [right-place assessment](cases/agent-art/right-places.md): four Reddit community introductions, follow recommendations, reported rules, suitable angles and publication fit.
 - Extended the workflow, Reddit guide and platform-check template to identify communities, groups and accounts worth following alongside individual posts.
 - Kept reported rule checks, account eligibility and acceptance of a specific post distinct. No subscriptions, participation or independent Reddit checks were performed during this import.
+- Clarified that checked discourse maintenance requested by the operator is published directly to `main`; PRs remain available when requested, required by protections or submitted by outside contributors.
 
 ## Folder layout — 29 October 2026
 

@@ -1,6 +1,6 @@
 # Contribute to discourse
 
-Use a short branch and PR for each meaningful change. The repository's [contribution and publication rules](../../CONTRIBUTING.md) still govern; discourse notes are not automatically Blog articles or website pages.
+For discourse maintenance requested by the repository operator, publish checked changes directly to `main`, following the operator's direct-publication direction. Use a PR when the operator requests one, repository protections require one, or an outside contributor submits a change. This scoped delivery rule takes precedence over the default PR procedure for operator-requested discourse updates. The repository's [contribution and publication rules](../../CONTRIBUTING.md) otherwise still govern; discourse notes are not automatically Blog articles or website pages.
 
 - Propose a question with a source passage, stable ID, audience and possible challenge.
 - Submit evidence with exact public URLs, check dates, access limits and evidence labels. Use the templates; preserve unknown and contradictory outcomes.

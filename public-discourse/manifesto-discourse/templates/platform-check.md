@@ -10,6 +10,17 @@ Queries and time spent (suggested cap: 20 minutes):
 Threads and replies read (up to five; record smaller sample and links):
 Reasons, examples, disagreement and latest relevant reply date:
 
+## Place and people worth following
+
+Platform structure and unit: community / group / channel / publication / account / other:
+Exact name and URL; what it mainly discusses and who participates:
+Recurring relevant activity and evidence links; limits of the sample:
+Follow recommendation: keep / more checks / skip; why and what to watch for:
+Suitable opening angle for this audience:
+Manifesto publication fit: suitable / conditional / unsuitable / unknown; why:
+Rules source, date and evidence basis: direct read / reported assessment / unchecked:
+Actual follow or membership status, if checked (separate from recommendation):
+
 ## A: reply route
 
 Exact current thread:

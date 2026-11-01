@@ -2,6 +2,8 @@
 
 These are starting candidates, not platform rankings. Each guide separates reply and publishing practices. Changing thread evidence belongs in the [case screening](../cases/agent-art/screening/2026-10-28.md).
 
+Use the platform's own communities, groups, channels, publications and accounts to find people worth following. Keep dated audience and publication choices in the case's [right places](../cases/agent-art/right-places.md), including introductions, rule sources, suitable angles and access gaps.
+
 - [Reddit](reddit.md)
 - [Substack](substack.md)
 - [LessWrong](lesswrong.md)

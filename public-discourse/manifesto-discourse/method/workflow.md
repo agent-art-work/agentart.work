@@ -30,6 +30,14 @@ Use everyday words to learn how people describe the problem. For Route A, this h
 
 Try AI, agent, AI agent, and app names such as Claude, Gemini or ChatGPT. Also try the question without an AI word. Keep work, learning and daily life in the search alongside art.
 
+### Find places and people worth following
+
+During each requested search pass, look beyond individual posts for places that repeatedly gather relevant people. Use the platform's structure: a subreddit, forum category, group, channel, publication or individual account may be the useful unit. Record its exact name, type and URL rather than treating a whole platform as one audience.
+
+Use the [platform check](../templates/platform-check.md) to record what the place mainly discusses, who participates, relevant activity, local rules and a suitable opening angle. Decide separately whether it deserves continued attention, contains a discussion to join, and could host an original manifesto introduction. A useful listening source may exclude our posts; an audience of supporters may offer little disagreement.
+
+Keep durable audience choices and dated rule assessments in the case, such as the Agent Art [right places](../cases/agent-art/right-places.md). Update them when evidence changes. A follow recommendation records a research choice; actually following, joining or posting requires the scope of the current request. Discovery does not create a daily schedule.
+
 ### Use the same test for each community
 
 1. Pick one manifesto question. Keep its meaning the same across places; adapt the wording to local conversation.

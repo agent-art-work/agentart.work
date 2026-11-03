@@ -145,8 +145,8 @@ ${source ? `<link rel="alternate" type="application/json" title="Complete docume
 <footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
 <a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
-<button class="analytics-open" type="button" data-analytics-action="open" aria-haspopup="dialog" aria-controls="analytics-settings" hidden>Analytics choices</button>
-</nav></footer>${analyticsMarkup}<script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script><script type="module" src="${url(analyticsAssets.script)}"></script>${readingScripts}</body></html>\n`;
+${analyticsMarkup}
+</nav></footer><script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script><script type="module" src="${url(analyticsAssets.script)}"></script>${readingScripts}</body></html>\n`;
 }
 
 function write(file, content) {
@@ -186,12 +186,13 @@ const readingWork = defineWork({
 });
 const workModule = `export default ${JSON.stringify(readingWork).replace(/</g, '\\u003c')};\n`;
 const readingAssets = writeReadingAssets(root, output, workModule, '0.1.5-alpha.2');
-const analyticsActions = `<div class="analytics-actions"><button type="button" data-analytics-action="allow">Allow analytics</button><button type="button" data-analytics-action="reject">Reject analytics</button></div>`;
-const analyticsMarkup = `<aside id="analytics-notice" aria-label="Optional analytics" hidden><p>Allow Google Analytics to measure page categories, approximate country, visits and engagement? It uses cookies. Your choice is optional; reading and Ask your Agent work either way.</p>${analyticsActions}<button class="analytics-open" type="button" data-analytics-action="open">Details and choices</button></aside>
-<dialog id="analytics-settings" aria-labelledby="analytics-title"><h2 id="analytics-title" tabindex="-1">Analytics choices</h2><p id="analytics-status" role="status" aria-live="polite">Analytics is off until this page verifies your permission.</p>
-<p>If enabled and allowed, Google Analytics measures broad page categories, approximate country, browser visits and engagement time. Google receives network and browser information, including your IP address. No reading invitations, prompts, artwork contents or downloaded documents are included. Advertising and personalization are off.</p>
-${analyticsActions}<details><summary>Cookies and limits</summary><p>Your choice is saved in this browser for 90 days. If allowed, analytics cookies distinguish browsers and sessions. The client cookie is configured for up to 90 days from creation; session cookies may renew for up to 90 days after activity or a later visit. Clearing site storage removes the saved choice and browser exclusion.</p><p>Reject analytics to withdraw permission. This stops further measurement on this page and removes this integration’s analytics cookies; it cannot recall information already sent. Excluding this browser also prevents future measurement here until you remove the exclusion. Removing exclusion does not grant permission.</p><p>Reports cover consenting browsers, not all visitors or unique people. Country can reflect a VPN or network location; engagement time is not proof of attention. See <a href="https://policies.google.com/privacy" rel="noreferrer">Google’s privacy policy</a>.</p></details>
-<div class="analytics-secondary"><button type="button" data-analytics-action="exclude">Exclude this browser</button><button type="button" data-analytics-action="include" hidden>Remove browser exclusion</button><button type="button" data-analytics-action="close">Close</button></div></dialog>`;
+const analyticsMarkup = `<details id="site-privacy" class="site-privacy"><summary>Privacy</summary><div class="privacy-information">
+<p>Optional audience measurement is off. No analytics script is loaded. Reading and Ask your Agent work without it.</p>
+<p>You can exclude this browser from future optional measurement. This saves only an exclusion preference, not a visitor identifier. Clearing site storage removes it. Existing reading state is unchanged.</p>
+<p>Removing exclusion does not turn measurement on. Previously collected information is not deleted by this choice.</p>
+<p id="analytics-status" role="status" aria-live="polite">Optional measurement is off.</p>
+<button type="button" data-analytics-action="exclude" hidden>Exclude this browser</button><button type="button" data-analytics-action="include" hidden>Remove browser exclusion</button>
+</div></details>`;
 write('.nojekyll', '');
 write('agent-index.json', agentDocuments.indexBytes);
 for (const [id, bytes] of agentDocuments.documents) write(`documents/${id}.json`, bytes);

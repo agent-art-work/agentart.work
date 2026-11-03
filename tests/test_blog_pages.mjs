@@ -84,59 +84,23 @@ const productionAnalyticsEnv = {
   AGENTART_ANALYTICS_MEASUREMENT_ID: 'G-0000000000',
 };
 
-test('analytics stays off for ordinary local, CI, PR, fork, branch, workflow and subpath builds', () => {
+test('unqualified manual collection stays off in every build context, including old production variables', () => {
   const saved = JSON.parse(read('site/analytics.json'));
-  const off = { enabled: false, measurementId: null, production: false };
-  assert.deepEqual(saved, { enabled: false, measurementId: null });
-  for (const env of [{}, { CI: 'true' }, { AGENTART_DEPLOYMENT: 'production', AGENTART_ANALYTICS_ENABLED: 'true', AGENTART_ANALYTICS_MEASUREMENT_ID: 'G-0000000000' }]) {
+  const off = { enabled: false, siteToken: null, production: false };
+  for (const env of [{}, { CI: 'true' }, productionAnalyticsEnv,
+    { ...productionAnalyticsEnv, AGENTART_CF_ENABLED: 'true', AGENTART_CF_SITE_TOKEN: 'a'.repeat(32) },
+    { ...productionAnalyticsEnv, GITHUB_EVENT_NAME: 'pull_request' },
+    { ...productionAnalyticsEnv, GITHUB_REF: 'refs/heads/preview' },
+    { ...productionAnalyticsEnv, GITHUB_REPOSITORY: 'fork/site' }]) {
     assert.deepEqual(analyticsBuildConfig(saved, env), off);
+    assert.deepEqual(analyticsBuildConfig(saved, env, '/preview'), off);
   }
-  for (const [key, value] of Object.entries({ CI: '', GITHUB_ACTIONS: '', GITHUB_REPOSITORY: 'a-fork/agentart.work',
-    GITHUB_REF: 'refs/heads/preview', GITHUB_EVENT_NAME: 'pull_request', GITHUB_WORKFLOW_REF: 'agent-art-work/agentart.work/.github/workflows/other.yml@refs/heads/main',
-    AGENTART_DEPLOYMENT: 'preview', AGENTART_ANALYTICS_ENABLED: '' })) {
-    assert.deepEqual(analyticsBuildConfig(saved, { ...productionAnalyticsEnv, [key]: value }), off, key);
-  }
-  for (const event of ['pull_request_target', 'schedule', 'workflow_call']) {
-    assert.deepEqual(analyticsBuildConfig(saved, { ...productionAnalyticsEnv, GITHUB_EVENT_NAME: event }), off, event);
-  }
-  for (const flag of ['false', 'TRUE', '1']) {
-    assert.deepEqual(analyticsBuildConfig(saved, { ...productionAnalyticsEnv, AGENTART_ANALYTICS_ENABLED: flag }), off, flag);
-  }
-  assert.deepEqual(analyticsBuildConfig(saved, productionAnalyticsEnv, '/preview'), off);
-  assert.deepEqual(analyticsBuildConfig(saved, { ...productionAnalyticsEnv, AGENTART_ANALYTICS_ENABLED: '', AGENTART_ANALYTICS_MEASUREMENT_ID: 'invalid' }), off);
-  assert.throws(() => analyticsBuildConfig({ enabled: true, measurementId: null }, {}));
-  assert.throws(() => analyticsBuildConfig({ enabled: 'true', measurementId: null }, {}));
-  assert.throws(() => analyticsBuildConfig({ enabled: true, measurementId: 'G-0000000000' }, productionAnalyticsEnv));
+  assert.throws(() => analyticsBuildConfig({ enabled: true, siteToken: 'a'.repeat(32) }));
+  assert.throws(() => analyticsBuildConfig({ enabled: false, measurementId: null }));
+  assert.doesNotMatch(read('.github/workflows/pages.yml'), /AGENTART_ANALYTICS_|AGENTART_CF_/);
 });
 
-test('only an explicit Pages production invocation can embed the separately configured ID', () => {
-  const saved = JSON.parse(read('site/analytics.json'));
-  for (const event of ['push', 'workflow_dispatch']) {
-    assert.deepEqual(analyticsBuildConfig(saved, { ...productionAnalyticsEnv, GITHUB_EVENT_NAME: event }),
-      { enabled: true, measurementId: 'G-0000000000', production: true });
-  }
-  for (const id of [undefined, '', ' G-0000000000', 'G-TEST000000', '</script>', 'UA-1234-1']) {
-    assert.throws(() => analyticsBuildConfig(saved, { ...productionAnalyticsEnv, AGENTART_ANALYTICS_MEASUREMENT_ID: id }), /valid AGENTART_ANALYTICS_MEASUREMENT_ID/);
-  }
-});
-
-test('Pages scopes analytics variables to the optional production rebuild before artifact upload', () => {
-  const workflow = read('.github/workflows/pages.yml');
-  const marker = '      - name: Build explicitly enabled production analytics\n';
-  const [ordinary, after] = workflow.split(marker);
-  assert.ok(after, 'explicit rebuild step exists');
-  assert.ok(ordinary.includes('npm test\n          npm run build\n          npm run check:site'));
-  assert.doesNotMatch(ordinary, /AGENTART_(DEPLOYMENT|ANALYTICS_)/, 'ordinary checks do not inherit activation');
-  const production = after.split('      - uses: actions/upload-pages-artifact@')[0];
-  for (const guard of ["github.repository == 'agent-art-work/agentart.work'", "github.ref == 'refs/heads/main'", "github.event_name == 'push'", "github.event_name == 'workflow_dispatch'", "vars.AGENTART_ANALYTICS_ENABLED == 'true'"]) {
-    assert.ok(production.includes(guard), guard);
-  }
-  assert.ok(production.includes('AGENTART_ANALYTICS_MEASUREMENT_ID: ${{ vars.AGENTART_ANALYTICS_MEASUREMENT_ID }}'));
-  assert.ok(production.includes('npm run build\n          npm run check:site'));
-  assert.ok(after.includes('path: _site'), 'the checked final artifact is uploaded by the existing action');
-});
-
-test('every shared page has optional analytics choices and inert configuration, without a Google resource', () => {
+test('every shared page has quiet Privacy, no consent prompt and no vendor resource', () => {
   for (const file of readdirSync(path.join(root, '_site'), { recursive: true }).filter(file => file.endsWith('.html'))) {
     const html = read(`_site/${file}`);
     if (!html.includes('class="site-footer"')) {
@@ -145,12 +109,12 @@ test('every shared page has optional analytics choices and inert configuration, 
     }
     const config = JSON.parse(html.match(/<script type="application\/json" id="analytics-config">(.*?)<\/script>/)[1]);
     assert.equal(config.enabled, false);
-    assert.equal(config.measurementId, null);
-    assert.ok(html.includes('id="analytics-notice" aria-label="Optional analytics" hidden'));
-    assert.ok(html.includes('aria-labelledby="analytics-title"'));
+    assert.equal(config.siteToken, null);
+    assert.ok(html.includes('<summary>Privacy</summary>'));
+    assert.doesNotMatch(html, /analytics-notice|analytics-settings|data-analytics-action="allow"/);
     assert.ok(html.includes('data-analytics-action="exclude"'));
-    assert.ok(html.includes('data-analytics-action="reject"'));
-    assert.doesNotMatch(html, /<(?:script|link|iframe)[^>]+(?:src|href)="https?:\/\/[^\"]*(?:google-analytics|googletagmanager)/);
+    assert.ok(html.includes('data-analytics-action="include"'));
+    assert.doesNotMatch(html, /<(?:script|link|iframe)[^>]+(?:src|href)="https?:\/\/[^\"]*(?:google-analytics|googletagmanager|cloudflareinsights)/);
     const script = html.match(/src="[^\"]*\/(assets\/analytics\.([a-f0-9]{64})\.mjs)"/);
     assert.ok(script, 'content-addressed, self-contained analytics entry');
     assert.equal(createHash('sha256').update(read(`_site/${script[1]}`)).digest('hex'), script[2]);

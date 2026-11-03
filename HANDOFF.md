@@ -149,6 +149,12 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-11-03 website maintenance: local removal-only candidate refreshed from main
+  `c0c9126` on `codex/analytics-off-refresh-20261103`. GA4 and the prompt are
+  removed locally. Footer Privacy preserves explicit browser exclusion. All
+  collection stays off. See [migration scope](site/analytics.md). Next: review
+  local checks and staging proposal before any release.
+
 ### Medium-term Reddit plan — 1 November 2026
 
 Lane: optional research documentation. The operator requested a summary of the agreed Reddit direction, a repository update and push. The [Reddit plan](public-discourse/manifesto-discourse/cases/agent-art/reddit-plan.md) covers joining/creating discussions, introducing/announcing the manifesto, one maintained full-text address, tailored introductions across suitable communities and review after an initial seven-day period. [Right places](public-discourse/manifesto-discourse/cases/agent-art/right-places.md) now retains the original four Page-reported communities and nine additional direct browser checks from the preceding discovery. The first-trial proposal is aligned to Reddit first, with r/aiwars for the initial discussion-led introduction and r/generativeAI as the next candidate. The plan is linked prominently from repository, workspace and case indexes. No Reddit post, reply, subscription, membership action or schedule was created. Intended-account eligibility and post acceptance remain untested. Publish the checked documentation directly to `main` under the operator's direction. Next: select a participant and one concrete example or clearly labelled proposal, then prepare the first native Reddit post and verify its exact destination before any separately authorized posting.

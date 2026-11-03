@@ -1,167 +1,97 @@
-# Optional analytics — local candidate
+# Optional measurement migration — local candidate, 2026-11-03
 
-Prepared 2026-10-26 for local review only. This is not part of the released
-website. `site/analytics.json` remains disabled with no measurement ID. No
-provider property, real Google test traffic or publication is authorized by
-this document. The website's current stable release and Protocol SDK status
-are unchanged.
+The operator's current direction is no consent prompt: collect only statistics
+that qualify without assumed consent, accepting missing metrics or regions.
+This candidate removes the GA4 loader and consent panel. It does not activate
+Cloudflare collection. Production remains on the previously released source
+until a separately approved publication and deployment.
 
-Local production-build follow-up, 2026-10-26: OPS has separately created the
-Agent Art Work property/stream and reported three synthetic pageviews received
-in Realtime, with bounded native consent/withdrawal/cookie/reload/exclusion
-checks. This is an OPS report, not a repeated test here or production deployment
-evidence. Native cross-domain settings and processed/filter-match evidence
-remain unqualified. No additional Google sends or provider changes are part
-of this follow-up.
+## Current candidate behavior
 
-## Scope
+Every build emits `enabled: false`, `siteToken: null`, `production: false`.
+This includes main production builds with the old GA4 variables still set,
+ordinary CI, PRs, forks, previews, local and subpath builds. The old workflow
+activation step is removed locally; no live repository variable is changed.
+There is no vendor script installer or custom collector/proxy in this candidate.
+Configuration alone cannot enable it. The source-owned qualification boundary
+is false and cannot be replaced by a browser preference or an environment flag.
 
-The site-owned integration adds an Analytics choices control to the shared
-footer. The locked manifesto, artwork and reading controls are independent of
-analytics. A disabled build has no consent prompt and cannot load Google.
-Visitors can still exclude the current browser through Analytics choices.
-JavaScript unavailable means no analytics.
+A closed Privacy disclosure in the footer explains measurement is off and offers
+browser exclusion. It never opens automatically or asks for consent. It works
+as information without JavaScript; exclusion actions require functional storage.
+The existing `agentart.analytics.excluded.v1` key retains its semantics: `1`
+excludes and `0` removes exclusion. Missing is not excluded; other values and
+unreadable storage fail closed. Only explicit button actions write this key,
+with readback/error reporting. Removing exclusion still cannot start collection.
+Old Allow/Reject preferences are ignored, not translated into permission.
+No visitor identifier, storage probe or new cookie is written. Old preferences,
+existing cookies, saved works, authentication, reading state and provider history
+are preserved; the removed loader no longer reads or renews analytics cookies.
+Other already-open documents may still run their previously loaded release.
 
-Eligibility requires every gate: explicitly configured production build,
-canonical `https://agentart.work` origin, an allowed route, no query string,
-no detected automation, working preference storage, valid permission and no
-browser exclusion. Local hosts, subpath previews, ordinary CI/PR builds, design demos,
-redirects, 404, technical downloads and unlisted routes are excluded. Fragments
-never enter analytics context. Removing an exclusion does not grant permission.
+## Proposed scope and unresolved gates
 
-The proposed category set is Home, Agent Art, Protocol, Works, Ask your Agent,
-Blog and About. Known historical article routes are grouped under Blog, with
-no article title or article URL. Additional routes require an explicit review;
-the catalogue cannot silently expand measurement. Events carry fixed category
-titles/URLs and empty referrer/campaign fields. No prompts, handoff payloads,
-artwork contents, document contents, storage contents or custom click funnels
-are sent. Native session and engagement signals remain subject to later
-provider and actual-vendor qualification.
+`REVIEWED_PATHS` is a finite candidate list of existing Home, About, Agent Art,
+Protocol, Works, Blog and seven historical study URLs. It does not expand with
+the article catalogue. These are actual paths, not substituted GA4 labels.
+Queries, fragments (including empty delimiters), credentials, unlisted paths,
+encoded aliases, previews, local origins, downloads and Ask your Agent are off.
+Known automation and explicit exclusion are checked before possible collection;
+absence of an automation hint is not proof of a human visitor. The candidate
+referrer guard accepts only empty or exact safe same-origin referrers. External
+and unknown/sensitive referrers remain excluded, including external origins.
+These offline-tested preconditions do not themselves authorize a beacon.
 
-## Permission and withdrawal
+Two blockers prevent any installation:
 
-This uses the basic consent approach: no Google tag or consent ping before
-Allow. Allow and Reject share the same layout and styling. Choices expire
-after 90 days; the browser exclusion persists until removed or site storage
-is cleared. Refreshing status cannot rewrite consent or renew its expiry.
-Storage reads, writes and a separate availability probe must succeed; writes
-are read back. Refusal is synchronized through storage events and a revoke-only
-BroadcastChannel. Clearing or invalidating saved consent revokes permission.
+1. **Regional manual mode:** agentart.work remains DNS-only on GitHub Pages.
+   Cloudflare automatic zone injection rules and `lite=true` do not establish
+   regional restrictions for arbitrary manual beacons. The exact supported
+   manual regional behavior must be qualified before collection. Do not infer
+   residence from receiving data centers or use report filters as collection
+   exclusions. No geolocation service, hosting move or paid plan is proposed.
+2. **Navigation and stopping:** the site has static document navigation but also
+   fragments, history restoration and client components. A native beacon sees
+   actual URLs/referrers and may install unload/history handlers. Removing a
+   script does not prove those handlers stopped. In-document hash/history changes,
+   cross-tab exclusion and later sensitive transitions need a supported stop or
+   safe document-boundary design. Until qualified, even public routes stay off.
 
-Withdrawal disables the Google tag before clearing its queue and removing its
-script/cookies. A stopped tag is never restarted within that document; a later
-explicit Allow can apply on the next eligible navigation. Expiry, focus,
-visibility and history restoration recheck permission. Unrelated reading
-state, cookies and local storage are retained. Failed persistence keeps the
-current page off and reports that the preference could not be saved; no browser
-code can promise durable refusal when every persistence API fails. Already-sent
-data cannot be recalled by withdrawal.
+## Future production requirements and approval boundary
 
-Only this integration's namespaced, host-only analytics cookies are removed.
-They are configured Secure/SameSite=Lax at `/`, with a 90-day lifetime and
-`cookie_update: false`. The client cookie is fixed up to 90 days from creation;
-session-cookie expiry can renew after activity or a later visit. Consent expiry
-is independent of cookie lifetime. Do not describe these as anonymous visitors
-or equate engagement time with attention.
+OPS must qualify the exact manual site registration on the retained Gallery
+account, public site tag, supported restricted regional mode, actual URL/referrer
+handling, navigation/exclusion stopping and absence of competing automatic
+injection. Keep GitHub Pages and DNS unchanged. No Cloudflare edge request or
+bandwidth measurement is claimed for this DNS-only site.
 
-## Build and local checks
+After those gates, a separately reviewed source change may add **one site-owned
+manual vendor loader** with the exact HTTPS origin, explicit production-only
+build context (repository, main ref, existing workflow and approved event),
+public site configuration and all browser/path/referrer gates. Neither a valid
+tag nor a production flag alone is sufficient. Use the native beacon only;
+no custom collector, proxy or client identity. The public tag is not the private
+OPS reporting credential. Reporting tokens and account credentials never belong
+in frontend source, HTML, configuration, logs or browser storage.
 
-The existing builder emits one content-addressed module and stylesheet from
-`analytics-core.mjs`, `analytics-ui.mjs` and `analytics.css`. Both are site-owned;
-the Protocol SDK is unchanged. Checked-in configuration must remain exactly
-disabled/unset. The normal build and ordinary CI/PR checks produce inactive
-configuration. A locally prepared step in the existing Pages workflow can
-rebuild the upload artifact only when production analytics is explicitly
-enabled through these repository variables after separate approval:
+This preparation authorizes no commit, push, merge, provider setting, staging,
+deployment, live vendor test or notification. Next: OPS reviews this local
+candidate and the blockers, then obtains separate qualification/publication
+approval. A removal-only release with collection off is a possible separate
+operator decision; it is not deployed by this preparation.
 
-| Repository variable | Future production value |
-| --- | --- |
-| `AGENTART_ANALYTICS_ENABLED` | `true` only after activation approval; absent or any other value stays off |
-| `AGENTART_ANALYTICS_MEASUREMENT_ID` | `G-7YQ4H869CL`, the separate Agent Art Work stream's public ID |
+## Checks, evidence and recovery
 
-No live variable has been set by this preparation. The workflow passes those
-values only to its optional production rebuild, after ordinary checks pass.
-The builder also requires `AGENTART_DEPLOYMENT=production`, GitHub Actions CI,
-the exact repository and Pages workflow reference on `refs/heads/main`, a
-`push` or `workflow_dispatch` event, and an empty base path. Local environment
-hints alone, PRs (including target events), forks, other workflows, other
-branches and previews stay off. Missing/malformed IDs fail the explicitly
-enabled production build before upload. A valid ID alone cannot enable it.
-There is no URL parameter or browser preference to activate analytics.
+Run the existing Node tests, Python tests, repository checker, build and site
+checker. The tests cover exact routes/referrers, exclusion persistence/failures,
+legacy Allow isolation, automation and configuration attempts to enable the
+unqualified collector. Artifact checks reject consent UI and unconditional
+vendor resources. They do not qualify Cloudflare runtime or legal eligibility.
+No browser collection test or live analytics send is part of this candidate.
 
-The existing upload/deploy jobs use the final checked `_site` artifact. No new
-workflow, job, hosting project or provider change is introduced. CI metadata
-is a build-context guard, not a security boundary against someone who can
-rewrite trusted source or forge the whole process environment. Offline tests
-simulate it with a fictional ID; those fixtures must never be deployed.
-
-Run the normal repository/site checks, including `npm test` for policy,
-controller and generated-page coverage. Browser qualification uses an isolated
-regular Chrome profile and intercepts all HTTP requests. A fictional ID and
-inert local tag substitute exercise permission, refusal, failures and sanitized
-parameters; they are never committed into site configuration. These local
-checks do not independently qualify Google's actual SDK, property settings or
-ingestion; the separate bounded OPS diagnostic retains its own evidence limits.
-
-## Release gates and staging
-
-Commit, push, PR, merge, live repository variables, deployment and enablement
-remain pending separate authorization. No further provider change, filter
-activation, grant or Google send is authorized. Before any enablement:
-
-1. Review this local candidate and its category/notice scope. Use the separate
-   Agent Art Work stream reported by OPS; do not create another or reuse
-   another site's ID. Retain OPS's dated provider readbacks for advertising,
-   personalization, User-ID, Signals and enhanced measurement. Native
-   cross-domain settings remain unread; code-level linker restrictions do not
-   establish that native setting. Keep processed/filter-match evidence pending.
-   `send_page_view: false` alone does not stop enhanced-measurement events.
-   Review actual data retention and disclosure before activation.
-2. Qualify the exact built artifact through an isolated local server or
-   browser-served artifact, with every Google endpoint intercepted. This is
-   local artifact verification, not a hosted staging deployment. PR checks
-   also build artifacts only. The existing Pages workflow deploys `main`
-   directly; it has no separate staging destination.
-3. For actual hosted staging, obtain approval for an existing isolated hosting
-   destination before deployment. None is established by this repository.
-   Do not overwrite production with a candidate branch or invent a new project.
-   If no existing destination is available, report the staging gate unresolved.
-4. Separately authorize publication and activation of the prepared workflow
-   wiring and variables. Carry forward the bounded native diagnostic without
-   claiming production-origin cookies, general reliability or processed-data
-   qualification. No more diagnostic traffic is authorized here. Exclude the
-   operator's browser before normal inspection; operator traffic is not
-   automatically developer traffic. Exclude the October 26 diagnostic date
-   from future audience baselines.
-
-For a separately approved staging operation, build/check the exact reviewed
-source with variables unset and preserve the `_site` checksums before upload to
-the approved existing isolated destination. No such destination is configured
-yet. Do not use a production-enabled or fictional-ID fixture for staging.
-After eventual activation, the quick configuration rollback is to set
-`AGENTART_ANALYTICS_ENABLED` to `false` and authorize a fresh main build/deploy;
-verify its final HTML is disabled/unset. Changing a variable alone cannot
-replace an already deployed artifact. Check pending runs so an older enabled
-artifact is not subsequently deployed. These are future instructions, not
-authority to mutate variables, cancel runs or deploy now.
-
-Rollback target for this candidate is source `57e55ef` (the current main before
-analytics preparation), with its existing static build and no analytics
-integration. If an enabled version is ever released, disabling future builds
-cannot instantly stop a previously loaded document; withdrawal/expiry controls
-and a provider-side response must be part of that separately approved rollout.
-
-Reports must state the period, consent coverage, sample limits and unavailable
-values. Countries can reflect proxy/VPN locations. Cookies/devices do not prove
-unique people or deduplicate audiences across sites; returning visits require
-later sessions. No reporting schedule or reporting platform is added here.
-
-## Technical references
-
-- [Google consent modes](https://developers.google.com/tag-platform/security/concepts/consent-mode)
-- [Disable flags and privacy settings](https://developers.google.com/tag-platform/security/guides/privacy)
-- [Pageview and enhanced measurement controls](https://developers.google.com/analytics/devguides/collection/ga4/views)
-- [GA4 configuration fields](https://developers.google.com/analytics/devguides/collection/ga4/reference/config)
-
-These are implementation references, not evidence that the unconfigured
-provider or actual tag behavior has been verified for this candidate.
+Rollback source is current main `c0c912667918bd41ec63243ac406a55887bb1111`,
+including its GA4 implementation. No change has been deployed. Discarding the
+local candidate restores that source; any future production rollback needs its
+own approval and a rebuilt/deployed artifact. Existing public GA4 variables and
+provider history are unchanged. Source history preserves the earlier consent
+implementation and its evidence without treating it as the new design.

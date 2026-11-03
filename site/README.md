@@ -9,11 +9,11 @@ The stable website baseline is
 released and verified on agentart.work on 2026-10-25 at `34eb927`.
 The bundled Protocol SDK retains its separate `0.1.5-alpha.2` designation.
 
-Local-only follow-up: [optional analytics candidate](analytics.md), disabled
-with no measurement ID in the checked-in defaults. Production-build wiring is
-prepared locally; publication, live build variables and enablement remain held.
-OPS separately reported a bounded provider diagnostic; its limits are recorded
-in the candidate guide. This is not part of the stable release.
+Local-only follow-up (2026-11-03): [optional measurement migration](analytics.md)
+removes GA4 and the consent panel, retains browser exclusion through quiet
+Privacy information, and keeps all collection off. Manual Cloudflare regional
+and navigation behavior is unqualified. No publication or provider change is
+included; the prior GA4 production release is preserved in Git history.
 
 Start from [AGENTS](../AGENTS.md) and [current status](../HANDOFF.md#current-position),
 then read the sources relevant to the requested website change. This is the

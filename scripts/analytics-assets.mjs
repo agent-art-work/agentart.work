@@ -1,24 +1,15 @@
-// Site-owned, default-off analytics. Only the explicit Pages production step can enable it.
+// Site-owned Privacy assets. Unqualified manual collection cannot be enabled.
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
 export function analyticsBuildConfig(config, env = process.env, base = '') {
-  if (!config || config.enabled !== false || config.measurementId !== null ||
-      Object.keys(config).sort().join(',') !== 'enabled,measurementId') {
-    throw new Error('Keep site/analytics.json disabled and unset; activation uses explicit production build variables.');
+  if (!config || config.enabled !== false || config.siteToken !== null ||
+      Object.keys(config).sort().join(',') !== 'enabled,siteToken') {
+    throw new Error('Keep site/analytics.json disabled and unset; manual collection is unqualified.');
   }
-  const production = !base && env.AGENTART_DEPLOYMENT === 'production' &&
-    env.AGENTART_ANALYTICS_ENABLED === 'true' && env.CI === 'true' &&
-    env.GITHUB_ACTIONS === 'true' && env.GITHUB_REPOSITORY === 'agent-art-work/agentart.work' &&
-    env.GITHUB_REF === 'refs/heads/main' && ['push', 'workflow_dispatch'].includes(env.GITHUB_EVENT_NAME) &&
-    env.GITHUB_WORKFLOW_REF === 'agent-art-work/agentart.work/.github/workflows/pages.yml@refs/heads/main';
-  if (!production) return { enabled: false, measurementId: null, production: false };
-  const id = env.AGENTART_ANALYTICS_MEASUREMENT_ID;
-  if (typeof id !== 'string' || !/^G-[A-Z0-9]{6,20}$/.test(id) || id.includes('TEST')) {
-    throw new Error('Explicit production analytics requires a valid AGENTART_ANALYTICS_MEASUREMENT_ID.');
-  }
-  return { enabled: true, measurementId: id, production: true };
+  // Old GA4 variables and speculative CF flags cannot activate an unqualified collector.
+  return { enabled: false, siteToken: null, production: false };
 }
 
 export function writeAnalyticsAssets(root, output) {

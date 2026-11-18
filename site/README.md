@@ -81,6 +81,24 @@ link to Blog in the footer, and existing `/blog/#articles` bookmarks still find 
 New navigation links do not force that scroll position.
 
 `/protocol/` renders the reviewed public summary in `docs/PROTOCOL.md`.
+`/create/` renders `docs/CREATE.md`, the artist/coding-Agent entry for the
+published `artwork-alpha.1` SDK distribution. Protocol, About and the footer
+link to it; the existing top navigation stays unchanged. The page and its
+complete Markdown envelope are included in `agent-index.json` and `llms.txt`.
+Release, installation, brief, support and qualification links are pinned to
+`artwork-alpha.1`, not the repository's moving main branch. The SDK is not
+installed into this website. Its package versions remain `0.0.0-mcp.1` and
+optional `0.0.0-account.1`; it does not upgrade the reading SDK.
+
+The docs integration does not install or execute the Artwork SDK. Analytics
+sources, configuration and workflow remain unchanged from main `23a5aba`:
+the production analytics rebuild step is absent, and the build returns OFF
+regardless of legacy production variables. Keep collection OFF and preserve the
+current reading adapter/Work, legacy query-hash routers, retained SDK archives
+and snapshots. Local page/export checks do not qualify the Artwork SDK runtime
+or close any analytics/OPS gate. The published release supersedes the frozen
+bundle's preparation-time publication wording, which remains unchanged.
+
 `/ask-your-agent/` renders `docs/ASK_YOUR_AGENT.md`, the visitor explanation of
 Protocol's reading component. `/about/` renders `docs/AGENT_ART_WORK.md`.
 All three are complete, indexed public sources. Private protocol specifications

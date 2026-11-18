@@ -149,6 +149,58 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-11-18 website maintenance, **docs-only release authorized and prepared**:
+  the operator approved publishing the reviewed artwork-alpha.1 website docs
+  after production-build verification. The isolated docs branch was rebased
+  onto verified main `23a5aba9eb4ef87decf3b073ab4a07fc24871b82`. Current main's
+  Pages workflow has no production analytics rebuild step and its analytics
+  builder returns OFF unconditionally. The legacy repository variable
+  `AGENTART_ANALYTICS_ENABLED` is still `true`, but is unused by this workflow
+  and cannot activate the current builder. No variable, workflow or analytics
+  source/configuration was changed for this release.
+  The outgoing scope remains ten docs/build/test files, preserving the locked
+  manifesto, field definition, original reading Work/adapter, SDK archives,
+  retained paths and notices. The separate local analytics and M7.2 work are
+  excluded. Required checks and the exact production-config build are rerun
+  before publication; then the normal Pages workflow and read-only live checks
+  must verify the selected commit. Actual commit/deployment receipts are kept
+  in ignored `local/qa/artwork-alpha-release-preflight-20261118/` in the owner
+  checkout. No Agent or reading-handoff action is part of the release.
+
+- 2026-11-18 website maintenance, **isolated artwork-alpha.1 docs candidate**:
+  branch `codex/artwork-alpha-docs-local`, baseline
+  `c50123e37b73c500ccfe8f09361c7cd80adb5fe8`, plus uncommitted docs changes.
+  Adds `/create/`, tag-pinned release/install/support/qualification/download
+  links, contextual and footer discovery, and complete `docs-create` knowledge
+  exports. Source is `docs/CREATE.md`; the top navigation is unchanged.
+  The SDK release is published; this website candidate is not published.
+  No analytics sources/configuration/workflow are changed from the baseline.
+  The local build declares collection OFF; no production activation variables
+  were supplied. The held analytics migration remains in the separate owner
+  checkout and must not be bundled into this docs candidate.
+  Validation: 36 focused Node tests, 14 reading-asset, 8 retained-SDK and
+  7 document-export Python tests pass; all 33 pages/97 public files/1,159 links
+  pass at root and `/docs-preview`. The current SDK's five browser files and
+  LICENSE and predecessor's five files plus declared README notice match their
+  archives. All 16 protected source files and 18 output assets are unchanged.
+  Off-screen stable Chrome rendering passed desktop 1440×1000, mobile 390×844
+  and dark mobile release-section checks. Reading mounted without an Agent
+  action. Two labelled cached-HTML fixtures used fresh browser profiles against
+  the new build: their original query-hash adapter/Work/SDK graphs loaded, and
+  all six missing/unknown legacy hash imports rejected. The fixtures each had
+  an incidental implicit favicon 404; no reading dependency failed. These are
+  representative cache-miss fixtures, not original historical HTML bytes or
+  physical-display evidence. Temporary fixtures and browser profiles are
+  removed, and the browser reservation is released.
+  Local review: `http://127.0.0.1:56126/create/`, retained static-server session
+  31419. Evidence/report live in the owner checkout's ignored
+  `local/qa/artwork-alpha-isolated-20261118/`. Existing site dependencies are
+  reused; this is not a fresh installation or artwork-runtime qualification.
+  Next: review this isolated candidate, then separately decide publication and
+  production analytics/build policy. No commit/push, Agent call, deployment or
+  resumed analytics trial occurred. The manifesto and field definition remain
+  unchanged.
+
 - 2026-11-03 website maintenance: local removal-only candidate refreshed from main
   `c0c9126` on `codex/analytics-off-refresh-20261103`. GA4 and the prompt are
   removed locally. Footer Privacy preserves explicit browser exclusion. All

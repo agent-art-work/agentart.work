@@ -549,6 +549,7 @@ test('manifesto, definition and public explanations are complete indexed documen
     ['docs/AGENT_ART.md', 'agent-art/', 'docs-agent-art'],
     ['docs/WORKS.md', 'works/', 'docs-works'],
     ['docs/PROTOCOL.md', 'protocol/', 'docs-protocol'],
+    ['docs/CREATE.md', 'create/', 'docs-create'],
     ['docs/AGENT_ART_WORK.md', 'about/', 'docs-agent-art-work'],
   ]) {
     const descriptor = index.documents.find(document => document.id === id);
@@ -581,4 +582,47 @@ test('manifesto, definition and public explanations are complete indexed documen
     assert.equal(document.id, descriptor.id);
     assert.equal(document.source.url, descriptor.source.url);
   }
+});
+
+test('the artwork creation entry is discoverable without replacing the reading component', () => {
+  const page = read('_site/create/index.html');
+  assert.equal(text(one(page, 'h1').inner), 'Make a work with your Agent');
+  assert.equal(elements(page, 'article', 'overview-page').length, 1);
+  assert.equal(elements(page, 'aside', 'toc').length, 0);
+  for (const route of ['protocol/', 'about/', 'ask-your-agent/']) {
+    assert.ok(elements(one(read(`_site/${route}index.html`), 'div', 'prose').inner, 'a')
+      .some(a => a.attrs.href === `${base}/create/`), `${route} points to creation`);
+  }
+  assert.ok(elements(one(page, 'nav', 'footer-links').inner, 'a')
+    .some(a => a.attrs.href === `${base}/create/` && text(a.inner) === 'Create'));
+  assert.ok(read('_site/llms.txt').includes(`[Make a work with your Agent](${base}/documents/docs-create.json)`));
+  assert.equal(elements(page, 'section', 'site-reading').length, 1);
+  const index = JSON.parse(read('_site/agent-index.json'));
+  assert.ok(index.documents.some(d => d.id === 'docs-ask-your-agent'));
+  assert.ok(index.documents.some(d => d.id === 'docs-agent-access'));
+});
+
+test('artwork alpha links identify the published distribution, exact packages and frozen support snapshot', () => {
+  const page = read('_site/create/index.html');
+  const prose = one(page, 'div', 'prose').inner;
+  const prefix = 'https://github.com/agent-art-work/agent-art-protocol';
+  const expected = [
+    `${prefix}/releases/tag/artwork-alpha.1`,
+    ...['INSTALL.md', 'ARTIST-AGENT.md', 'SUPPORT.md', 'QUALIFICATION.json']
+      .map(file => `${prefix}/blob/artwork-alpha.1/releases/artwork-alpha.1/${file}`),
+    `${prefix}/releases/download/artwork-alpha.1/agent-art-artwork-alpha.1.tar.gz`,
+    `${prefix}/releases/download/artwork-alpha.1/BUNDLE.json`,
+  ];
+  const links = elements(prose, 'a').map(a => a.attrs.href).filter(href => href.startsWith(prefix));
+  assert.deepEqual(new Set(links), new Set(expected));
+  assert.ok(links.every(href => !/\/(?:main|latest)(?:\/|$)/.test(href)));
+  assert.match(text(prose), /@agent-art\/artwork-sdk@0\.0\.0-mcp\.1/);
+  assert.match(text(prose), /@agent-art\/participation-account@0\.0\.0-account\.1/);
+  assert.equal(text(one(prose, 'pre').inner), '567092e6fe0b740910b66a66748ba4f00c8b90c4829c65d2ff16f041630ac1a3');
+  assert.match(text(prose), /622,892 bytes/);
+  assert.match(text(prose), /macOS arm64, Node 22\.23\.4, SQLite 3\.53\.4 and npm 10\.9\.9/);
+  assert.match(text(prose), /preparation-time.*prepared\/unpublished.*later publication/);
+  assert.match(text(prose), /67 consolidated local tests reported by its owner/);
+  assert.match(text(prose), /app tests were not independently rerun/);
+  assert.match(text(prose), /Reading releases and this site’s existing reading assets are unchanged/);
 });

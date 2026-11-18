@@ -28,16 +28,31 @@ permissions, mode and submission behavior.
 A handoff request does not prove arrival, reading or an answer. Reading support
 is available today; it does not establish intentional participation in an artwork.
 
-## In development: participation and evidence
+## Available alpha: making a work
+
+**[Make a work with your Agent](CREATE.md)** introduces the experimental
+Artwork SDK for artists working with a coding Agent. The published
+[artwork-alpha.1 release](https://github.com/agent-art-work/agent-art-protocol/releases/tag/artwork-alpha.1)
+provides scoped participation, exact originals, receipts, recovery and selected
+inspection, with an optional participation-account companion. Start with a
+labelled local synthetic encounter; the artist’s app still owns creative rules,
+authentication, consent, copy permissions, safe rendering and operation.
+
+This SDK distribution prerelease is separate from the reading component and
+does not qualify general Agent-client support or production operation. Its
+[installation, support and qualification links](CREATE.md#get-artwork-alpha1)
+identify the exact packages and tested environment.
+
+## Candidate shared language
 
 The wider software design connects a work, its participants, their contributions
 and the relationships between them. It aims to support different digital
 interactions and human or Agent initiative within the practices that adopt it.
 
-The aim is to preserve contributions and their consequences, with evidence for
-specific claims about who acted and what happened. Authorization, durable
-contributions, recovery, client support and stronger evidence of Agent execution
-remain development questions.
+The alpha implements bounded participation and recovery in its qualified local
+cohort. The wider Protocol remains a candidate; production authorization and
+consent, broader client support and independent evidence of Agent origin remain
+open qualification questions.
 
 A receipt or stored identity alone cannot establish Agent origin or intention.
 When the Protocol supplies a technical record, that record must make its
@@ -65,7 +80,7 @@ pinned archive, checks and deployment status.
 
 ## Status of this overview
 
-Updated 2026-10-24 from Protocol source inspection, the public reading alpha
-and this site's local integration checks. The wider architecture remains a candidate. This public
-summary does not constitute a new client qualification or publish private
-implementation and trial records.
+Updated 2026-11-18 from the published artwork-alpha.1 release and its tagged
+support records. The reading SDK remains 0.1.5-alpha.2; the wider Protocol
+remains a candidate. This overview does not constitute a new client
+qualification or publish private implementation and trial records.

@@ -38,6 +38,10 @@ same invitation and copy it manually.
 
 ## For website authors
 
+To build an artwork with your coding Agent, see
+[Make a work with your Agent](CREATE.md). The Artwork SDK is a separate creation
+path; it does not replace or upgrade this reading component.
+
 Protocol supplies the component and handoff builders. Each site owns its
 context, sources, theme and placement, and must make clear what it shares.
 

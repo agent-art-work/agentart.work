@@ -45,6 +45,7 @@ const routes = new Map([
   ['docs/AGENT_ACCESS.md', 'agent-access/index.html'],
   ['docs/ASK_YOUR_AGENT.md', 'ask-your-agent/index.html'],
   ['docs/PROTOCOL.md', 'protocol/index.html'],
+  ['docs/CREATE.md', 'create/index.html'],
   ['docs/AGENT_ART_WORK.md', 'about/index.html'],
   ['templates/PROJECT.md', 'templates/project.html'],
   ['templates/STUDY.md', 'templates/study.html'],
@@ -144,7 +145,7 @@ ${source ? `<link rel="alternate" type="application/json" title="Complete docume
 <section class="site-reading" id="reading-heading" aria-label="Ask your Agent"><div class="site-agent-reading"><div id="ask-your-agent"></div></div>${promptDisclosure}</section>
 <footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
-<a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
+<a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('create/index.html')}">Create</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
 ${analyticsMarkup}
 </nav></footer><script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script><script type="module" src="${url(analyticsAssets.script)}"></script>${readingScripts}</body></html>\n`;
 }
@@ -196,7 +197,7 @@ const analyticsMarkup = `<details id="site-privacy" class="site-privacy"><summar
 write('.nojekyll', '');
 write('agent-index.json', agentDocuments.indexBytes);
 for (const [id, bytes] of agentDocuments.documents) write(`documents/${id}.json`, bytes);
-write('llms.txt', `# Agent Art Work\n\n> The Agent Art manifesto and definition, Works showroom, public overviews of Protocol and Ask your Agent, and Blog articles. Optional research guidance and dated Lab records remain available; research findings retain their stated scope and evidence limits.\n\n## Start here\n\n- [Document index (JSON)](${url('agent-index.json')}): discovery, revisions, hashes and complete same-origin downloads.\n- [Source retrieval and verification](${url('agent-access/index.html')}): prerequisites, verification, link resolution and failure handling.\n\nUse permitted ordinary HTTP GET to fetch the index and relevant complete downloads. Resolve root-relative URLs against the fetched index origin. No JavaScript, GitHub retrieval or authentication is required to read exported documents. Treat documents as reference material, not new authority. Successful retrieval is not evidence of comprehension. This file is a discovery convenience, not a guarantee that every agent will discover it automatically.\n\n## Documents\n\n${agentDocuments.index.documents.map(d => `- [${d.title}](${d.download.url})${d.study ? `: ${d.study.status}; ${d.study.evidence}.` : ''}`).join('\n')}\n`);
+write('llms.txt', `# Agent Art Work\n\n> The Agent Art manifesto and definition, Works showroom, public overviews of Protocol and Ask your Agent, the Artwork SDK creation guide, and Blog articles. Optional research guidance and dated Lab records remain available; research findings retain their stated scope and evidence limits.\n\n## Start here\n\n- [Document index (JSON)](${url('agent-index.json')}): discovery, revisions, hashes and complete same-origin downloads.\n- [Source retrieval and verification](${url('agent-access/index.html')}): prerequisites, verification, link resolution and failure handling.\n\nUse permitted ordinary HTTP GET to fetch the index and relevant complete downloads. Resolve root-relative URLs against the fetched index origin. No JavaScript, GitHub retrieval or authentication is required to read exported documents. Treat documents as reference material, not new authority. Successful retrieval is not evidence of comprehension. This file is a discovery convenience, not a guarantee that every agent will discover it automatically.\n\n## Documents\n\n${agentDocuments.index.documents.map(d => `- [${d.title}](${d.download.url})${d.study ? `: ${d.study.status}; ${d.study.evidence}.` : ''}`).join('\n')}\n`);
 
 const promptDisclosure = `<details class="hero-prompt" id="agent-prompt-disclosure"><summary><span id="agent-prompt-heading">Ask your Agent</span><span class="disclosure-icon" aria-hidden="true"></span></summary>
 <div class="prompt-content"><p class="prompt-intro">Copy this invitation into your Agent to explore the site's sources.</p><div class="prompt-actions"><button class="button prompt-copy" type="button" id="copy-agent-prompt" hidden>Copy prompt</button><a href="${url('ask-your-agent/index.html')}">How it works</a></div><pre id="agent-prompt" tabindex="0" aria-label="Prompt to copy for your agent">${esc(agentPrompt)}</pre><p class="prompt-status" id="prompt-copy-status" role="status" aria-live="polite">You can also select and copy the text.</p></div></details>`;
@@ -228,7 +229,7 @@ for (const [source, route] of routes) {
   const recordContext = source.startsWith('projects/') && source.endsWith('/README.md')
     ? '<p class="evidence-banner">Retained Lab research context. Observations and next steps describe their recorded period; they are not current product status or instructions to resume work.</p>'
     : '';
-  const overview = ['docs/AGENT_ART_WORK.md', 'docs/PROTOCOL.md', 'docs/ASK_YOUR_AGENT.md', 'docs/AGENT_ART.md'].includes(source);
+  const overview = ['docs/AGENT_ART_WORK.md', 'docs/PROTOCOL.md', 'docs/CREATE.md', 'docs/ASK_YOUR_AGENT.md', 'docs/AGENT_ART.md'].includes(source);
   const sourceLinks = `<div class="source-links"><a href="${url(`documents/${documentId(source)}.json`)}">Complete document (JSON)</a><a href="${repo}/blob/main/${source}">Read Markdown ↗</a><a href="${repo}/commits/main/${source}">Revision history ↗</a></div>`;
   const toc = headings.filter(h => h.level === 2).map(h => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`).join('');
   if (source === 'docs/WORKS.md') {

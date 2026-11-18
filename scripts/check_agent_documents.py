@@ -25,6 +25,7 @@ ROUTES = {
     "docs/AGENT_ART.md": "agent-art/",
     "docs/WORKS.md": "works/",
     "docs/PROTOCOL.md": "protocol/",
+    "docs/CREATE.md": "create/",
     "docs/AGENT_ART_WORK.md": "about/",
     "templates/PROJECT.md": "templates/project.html",
     "templates/STUDY.md": "templates/study.html",

@@ -49,7 +49,7 @@ jobs:
           path: local/ci-pages-release
       - name: Verify the exact release files
         run: python3 -B scripts/check_cloudflare_release.py artifact "$RELEASE_DIRECTORY" "$MANIFEST_SHA256"
-      - name: Read redacted Preview settings without uploading
+      - name: Remove only verified inert Preview rehearsal bindings
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -58,54 +58,80 @@ jobs:
           test "$TARGET" = preview
           python3 -B - <<'PYTHON'
           from hashlib import sha256
+          import json
           import os
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, build_opener
+
           from scripts import check_cloudflare_release as release
 
-          project = release.pages_api()
-          release.require(
-              project.get("name") == release.PROJECT and project.get("subdomain") == release.PAGES_HOST
-              and project.get("production_branch") == "main" and "agentart.work" in project.get("domains", []),
-              "Unexpected Pages project, domain or production branch",
-          )
-          settings = project["deployment_configs"]["preview"]
-          variables = settings.get("env_vars")
-          if variables is None:
-              variables = {}
-          release.require(isinstance(variables, dict), "Unexpected Preview variable shape")
+          def preview_settings(project):
+              release.require(
+                  project.get("name") == release.PROJECT and project.get("subdomain") == release.PAGES_HOST
+                  and project.get("production_branch") == "main"
+                  and "agentart.work" in project.get("domains", []),
+                  "Unexpected Pages project, domain or production branch",
+              )
+              configurations = project["deployment_configs"]
+              build = project.get("build_config")
+              release.check_off(configurations["production"], build, "production")
+              active_id = (project.get("canonical_deployment") or {}).get("id") or ""
+              release.require(release.UUID.fullmatch(active_id), "Invalid active Production ID")
+              preview = configurations["preview"]
+              variables = preview.get("env_vars")
+              release.require(variables is None or isinstance(variables, dict), "Invalid Preview variables")
+              return preview, variables or {}, configurations["production"], build, active_id
+
+          before = release.pages_api()
+          preview, variables, production_settings, build, active_id = preview_settings(before)
+          rehearsal_digest = "5694a7f76ba58ed3f8db76d0ad4f291a9ec637eaa135328decc3401d85dc79b9"
+          removals = {}
           for key in sorted(release.ACTIVATION_KEYS):
-              if key not in variables:
-                  state = "absent"
-              else:
-                  entry = variables[key]
-                  if entry is None:
-                      state = "json-null"
-                  elif not isinstance(entry, dict):
-                      state = "non-null-unexpected-shape"
-                  elif entry.get("type") == "plain_text":
-                      if "value" not in entry:
-                          state = "plaintext-value-omitted"
-                      elif entry["value"] is None:
-                          state = "plaintext-value-null"
-                      elif entry["value"] == "":
-                          state = "plaintext-empty"
-                      elif isinstance(entry["value"], str) and sha256(entry["value"].encode()).hexdigest() == (
-                          "5694a7f76ba58ed3f8db76d0ad4f291a9ec637eaa135328decc3401d85dc79b9"
-                      ):
-                          state = "exact-inert-rehearsal-value"
-                      else:
-                          state = "other-plaintext-redacted"
-                  elif entry.get("type") == "secret_text":
-                      state = "secret-entry-redacted"
-                  else:
-                      state = "non-null-unexpected-type"
-              print(f"PREVIEW_BINDING {key} {state}")
-          build = project.get("build_config") or {}
-          injection = any(build.get(key) for key in ("web_analytics_tag", "web_analytics_token"))
-          print("PREVIEW_INJECTION", "present" if injection else "absent")
-          try:
-              release.verify_project(project, "preview", os.environ["RELEASE_BRANCH"])
-          except ValueError:
-              print("PREVIEW_GATE blocked")
+              entry = variables.get(key)
+              if entry is None:
+                  continue
+              value = entry.get("value") if isinstance(entry, dict) and entry.get("type") == "plain_text" else None
+              release.require(isinstance(value, str) and sha256(value.encode()).hexdigest() == rehearsal_digest,
+                              f"Unexpected value class for {key}; no settings written")
+              removals[key] = None
+
+          if removals:
+              account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+              endpoint = f"https://api.cloudflare.com/client/v4/accounts/{account}/pages/projects/{release.PROJECT}"
+              payload = {"deployment_configs": {"preview": {"env_vars": removals}}}
+              request = Request(
+                  endpoint, data=json.dumps(payload).encode(), method="PATCH",
+                  headers={"Authorization": f'Bearer {os.environ["CLOUDFLARE_API_TOKEN"]}',
+                           "Content-Type": "application/json", "Accept-Encoding": "identity"},
+              )
+              try:
+                  with build_opener(release.NoRedirect()).open(request, timeout=12) as response:
+                      data = response.read(2_000_001)
+              except HTTPError as error:
+                  raise SystemExit(f"Preview PATCH returned HTTP {error.code}; do not retry without readback") from None
+              except URLError:
+                  raise SystemExit("Preview PATCH transport failed; confirm readback before any retry") from None
+              if len(data) > 2_000_000 or json.loads(data).get("success") is not True:
+                  raise SystemExit("Preview PATCH acknowledgement could not be verified; confirm readback")
+              print(f"PREVIEW_CLEANUP {len(removals)} exact rehearsal entries submitted for removal")
+              after = release.pages_api()
           else:
-              print("PREVIEW_GATE clear")
+              print("PREVIEW_CLEANUP already clear; no write")
+              after = before
+
+          actual_preview, actual_variables, actual_production, actual_build, actual_active_id = preview_settings(after)
+          release.require((actual_production, actual_build, actual_active_id) == (production_settings, build, active_id),
+                          "Production or injection settings differ after Preview cleanup")
+          release.require(
+              {key: value for key, value in preview.items() if key != "env_vars"}
+              == {key: value for key, value in actual_preview.items() if key != "env_vars"},
+              "Unrelated Preview settings differ after cleanup",
+          )
+          release.require(
+              {key: value for key, value in variables.items() if key not in release.ACTIVATION_KEYS}
+              == {key: value for key, value in actual_variables.items() if key not in release.ACTIVATION_KEYS},
+              "Unrelated Preview variables differ after cleanup",
+          )
+          release.verify_project(after, "preview", os.environ["RELEASE_BRANCH"])
+          print("PREVIEW_READBACK clear; unrelated Preview settings, Production settings and deployment ID unchanged")
           PYTHON

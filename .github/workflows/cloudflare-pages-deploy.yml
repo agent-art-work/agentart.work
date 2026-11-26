@@ -49,89 +49,34 @@ jobs:
           path: local/ci-pages-release
       - name: Verify the exact release files
         run: python3 -B scripts/check_cloudflare_release.py artifact "$RELEASE_DIRECTORY" "$MANIFEST_SHA256"
-      - name: Remove only verified inert Preview rehearsal bindings
+      - name: Check the Pages environment and save the rollback ID
+        id: preflight
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          test "$TARGET" = preview
-          python3 -B - <<'PYTHON'
-          from hashlib import sha256
-          import json
-          import os
-          from urllib.error import HTTPError, URLError
-          from urllib.request import Request, build_opener
-
-          from scripts import check_cloudflare_release as release
-
-          def preview_settings(project):
-              release.require(
-                  project.get("name") == release.PROJECT and project.get("subdomain") == release.PAGES_HOST
-                  and project.get("production_branch") == "main"
-                  and "agentart.work" in project.get("domains", []),
-                  "Unexpected Pages project, domain or production branch",
-              )
-              configurations = project["deployment_configs"]
-              build = project.get("build_config")
-              release.check_off(configurations["production"], build, "production")
-              active_id = (project.get("canonical_deployment") or {}).get("id") or ""
-              release.require(release.UUID.fullmatch(active_id), "Invalid active Production ID")
-              preview = configurations["preview"]
-              variables = preview.get("env_vars")
-              release.require(variables is None or isinstance(variables, dict), "Invalid Preview variables")
-              return preview, variables or {}, configurations["production"], build, active_id
-
-          before = release.pages_api()
-          preview, variables, production_settings, build, active_id = preview_settings(before)
-          rehearsal_digest = "5694a7f76ba58ed3f8db76d0ad4f291a9ec637eaa135328decc3401d85dc79b9"
-          removals = {}
-          for key in sorted(release.ACTIVATION_KEYS):
-              entry = variables.get(key)
-              if entry is None:
-                  continue
-              value = entry.get("value") if isinstance(entry, dict) and entry.get("type") == "plain_text" else None
-              release.require(isinstance(value, str) and sha256(value.encode()).hexdigest() == rehearsal_digest,
-                              f"Unexpected value class for {key}; no settings written")
-              removals[key] = None
-
-          if removals:
-              account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
-              endpoint = f"https://api.cloudflare.com/client/v4/accounts/{account}/pages/projects/{release.PROJECT}"
-              payload = {"deployment_configs": {"preview": {"env_vars": removals}}}
-              request = Request(
-                  endpoint, data=json.dumps(payload).encode(), method="PATCH",
-                  headers={"Authorization": f'Bearer {os.environ["CLOUDFLARE_API_TOKEN"]}',
-                           "Content-Type": "application/json", "Accept-Encoding": "identity"},
-              )
-              try:
-                  with build_opener(release.NoRedirect()).open(request, timeout=12) as response:
-                      data = response.read(2_000_001)
-              except HTTPError as error:
-                  raise SystemExit(f"Preview PATCH returned HTTP {error.code}; do not retry without readback") from None
-              except URLError:
-                  raise SystemExit("Preview PATCH transport failed; confirm readback before any retry") from None
-              if len(data) > 2_000_000 or json.loads(data).get("success") is not True:
-                  raise SystemExit("Preview PATCH acknowledgement could not be verified; confirm readback")
-              print(f"PREVIEW_CLEANUP {len(removals)} exact rehearsal entries submitted for removal")
-              after = release.pages_api()
-          else:
-              print("PREVIEW_CLEANUP already clear; no write")
-              after = before
-
-          actual_preview, actual_variables, actual_production, actual_build, actual_active_id = preview_settings(after)
-          release.require((actual_production, actual_build, actual_active_id) == (production_settings, build, active_id),
-                          "Production or injection settings differ after Preview cleanup")
-          release.require(
-              {key: value for key, value in preview.items() if key != "env_vars"}
-              == {key: value for key, value in actual_preview.items() if key != "env_vars"},
-              "Unrelated Preview settings differ after cleanup",
-          )
-          release.require(
-              {key: value for key, value in variables.items() if key not in release.ACTIVATION_KEYS}
-              == {key: value for key, value in actual_variables.items() if key not in release.ACTIVATION_KEYS},
-              "Unrelated Preview variables differ after cleanup",
-          )
-          release.verify_project(after, "preview", os.environ["RELEASE_BRANCH"])
-          print("PREVIEW_READBACK clear; unrelated Preview settings, Production settings and deployment ID unchanged")
-          PYTHON
+          active=$(python3 -B scripts/check_cloudflare_release.py preflight "$TARGET" "$RELEASE_BRANCH" "$EXPECTED_PRODUCTION")
+          echo "active=$active" >> "$GITHUB_OUTPUT"
+          printf 'Production before deploy: `%s`\n' "$active" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the verified artifact
+        id: deploy
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.81.0'
+          workingDirectory: local/ci-pages-release
+          command: pages deploy _site --project-name=agentart-work --branch=${{ inputs.branch }} --commit-hash=${{ github.sha }} --commit-dirty=false --no-bundle
+      - name: Verify the deployment and its served OFF files
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PRIOR_PRODUCTION: ${{ steps.preflight.outputs.active }}
+          DEPLOYMENT_ID: ${{ steps.deploy.outputs.pages-deployment-id }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          DEPLOYMENT_ENVIRONMENT: ${{ steps.deploy.outputs.pages-environment }}
+        run: |
+          set -euo pipefail
+          python3 -B scripts/check_cloudflare_release.py verify "$RELEASE_DIRECTORY" "$MANIFEST_SHA256" "$TARGET" "$RELEASE_BRANCH" \
+            "$PRIOR_PRODUCTION" "$DEPLOYMENT_ID" "$DEPLOYMENT_URL" "$DEPLOYMENT_ENVIRONMENT" "$GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"

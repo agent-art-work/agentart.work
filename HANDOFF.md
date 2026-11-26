@@ -154,9 +154,10 @@ the respective maintainers' release authority.
   its manifest in each deployment job, and uses the same files for Preview
   and Production in a promotion run. Preview and Production have separate
   GitHub environments. Production requires a verified Preview and the
-  expected active deployment ID. Set up the protected environments and
-  scoped credentials before dispatching a release. The GitHub Pages
-  workflow still supplies fallback until OPS accepts full OFF recovery.
+  expected active deployment ID. The protected environments and account
+  selector are configured. Deployment credentials and the Cloudflare
+  release remain pending. The GitHub Pages workflow still supplies fallback
+  until OPS accepts full OFF recovery.
   See the [CI/CD setup and release procedure](delivery/cloudflare-pages/RELEASE.md#enable-github-actions-delivery).
 
 - 2026-11-26 website maintenance, **Cloudflare release transition**. GitHub is

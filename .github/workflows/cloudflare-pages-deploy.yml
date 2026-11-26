@@ -49,34 +49,63 @@ jobs:
           path: local/ci-pages-release
       - name: Verify the exact release files
         run: python3 -B scripts/check_cloudflare_release.py artifact "$RELEASE_DIRECTORY" "$MANIFEST_SHA256"
-      - name: Check the Pages environment and save the rollback ID
-        id: preflight
+      - name: Read redacted Preview settings without uploading
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          active=$(python3 -B scripts/check_cloudflare_release.py preflight "$TARGET" "$RELEASE_BRANCH" "$EXPECTED_PRODUCTION")
-          echo "active=$active" >> "$GITHUB_OUTPUT"
-          printf 'Production before deploy: `%s`\n' "$active" >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload the verified artifact
-        id: deploy
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '4.81.0'
-          workingDirectory: local/ci-pages-release
-          command: pages deploy _site --project-name=agentart-work --branch=${{ inputs.branch }} --commit-hash=${{ github.sha }} --commit-dirty=false --no-bundle
-      - name: Verify the deployment and its served OFF files
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          PRIOR_PRODUCTION: ${{ steps.preflight.outputs.active }}
-          DEPLOYMENT_ID: ${{ steps.deploy.outputs.pages-deployment-id }}
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
-          DEPLOYMENT_ENVIRONMENT: ${{ steps.deploy.outputs.pages-environment }}
-        run: |
-          set -euo pipefail
-          python3 -B scripts/check_cloudflare_release.py verify "$RELEASE_DIRECTORY" "$MANIFEST_SHA256" "$TARGET" "$RELEASE_BRANCH" \
-            "$PRIOR_PRODUCTION" "$DEPLOYMENT_ID" "$DEPLOYMENT_URL" "$DEPLOYMENT_ENVIRONMENT" "$GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$TARGET" = preview
+          python3 -B - <<'PYTHON'
+          from hashlib import sha256
+          import os
+          from scripts import check_cloudflare_release as release
+
+          project = release.pages_api()
+          release.require(
+              project.get("name") == release.PROJECT and project.get("subdomain") == release.PAGES_HOST
+              and project.get("production_branch") == "main" and "agentart.work" in project.get("domains", []),
+              "Unexpected Pages project, domain or production branch",
+          )
+          settings = project["deployment_configs"]["preview"]
+          variables = settings.get("env_vars")
+          if variables is None:
+              variables = {}
+          release.require(isinstance(variables, dict), "Unexpected Preview variable shape")
+          for key in sorted(release.ACTIVATION_KEYS):
+              if key not in variables:
+                  state = "absent"
+              else:
+                  entry = variables[key]
+                  if entry is None:
+                      state = "json-null"
+                  elif not isinstance(entry, dict):
+                      state = "non-null-unexpected-shape"
+                  elif entry.get("type") == "plain_text":
+                      if "value" not in entry:
+                          state = "plaintext-value-omitted"
+                      elif entry["value"] is None:
+                          state = "plaintext-value-null"
+                      elif entry["value"] == "":
+                          state = "plaintext-empty"
+                      elif isinstance(entry["value"], str) and sha256(entry["value"].encode()).hexdigest() == (
+                          "5694a7f76ba58ed3f8db76d0ad4f291a9ec637eaa135328decc3401d85dc79b9"
+                      ):
+                          state = "exact-inert-rehearsal-value"
+                      else:
+                          state = "other-plaintext-redacted"
+                  elif entry.get("type") == "secret_text":
+                      state = "secret-entry-redacted"
+                  else:
+                      state = "non-null-unexpected-type"
+              print(f"PREVIEW_BINDING {key} {state}")
+          build = project.get("build_config") or {}
+          injection = any(build.get(key) for key in ("web_analytics_tag", "web_analytics_token"))
+          print("PREVIEW_INJECTION", "present" if injection else "absent")
+          try:
+              release.verify_project(project, "preview", os.environ["RELEASE_BRANCH"])
+          except ValueError:
+              print("PREVIEW_GATE blocked")
+          else:
+              print("PREVIEW_GATE clear")
+          PYTHON

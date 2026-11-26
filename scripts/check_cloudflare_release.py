@@ -96,13 +96,21 @@ def pages_api(suffix=""):
     return response["result"]
 
 
-def check_off(settings, build_config, label):
-    variables = settings.get("env_vars") or {}
-    require(isinstance(variables, dict) and not ACTIVATION_KEYS.intersection(variables),
+def check_off(settings, build_config, label, *, allow_deleted_keys=False):
+    variables = settings.get("env_vars")
+    require(variables is None or isinstance(variables, dict),
+            f"Invalid environment variables in {label}")
+    variables = variables or {}
+    activation_keys = ACTIVATION_KEYS.intersection(variables)
+    bound_keys = {key for key in activation_keys if variables[key] is not None}
+    require(not (bound_keys if allow_deleted_keys else activation_keys),
             f"Measurement activation keys found in {label}")
     build_config = build_config or {}
     require(not any(build_config.get(key) for key in ("web_analytics_tag", "web_analytics_token")),
             f"Cloudflare Web Analytics injection configured in {label}")
+    if activation_keys:
+        print(f"{label}: verified {len(activation_keys)} deleted measurement entries (JSON null)",
+              file=sys.stderr)
 
 
 def verify_project(project, target, branch):
@@ -114,7 +122,7 @@ def verify_project(project, target, branch):
             "Unexpected release target or branch")
     settings = (project.get("deployment_configs") or {}).get(target)
     require(isinstance(settings, dict), f"No Pages configuration for {target}")
-    check_off(settings, project.get("build_config"), target)
+    check_off(settings, project.get("build_config"), target, allow_deleted_keys=target == "preview")
     active = (project.get("canonical_deployment") or {}).get("id", "")
     require(UUID.fullmatch(active), "Cannot read the existing Production deployment ID")
     return active
@@ -164,7 +172,8 @@ def verify_deployment(args, files):
     require(deployed.get("id") == args.deployment_id and deployed.get("environment") == args.target
             and metadata.get("branch") == args.branch and metadata.get("commit_hash") == args.commit,
             "Deployment does not match the approved branch and commit")
-    check_off(deployed, deployed.get("build_config"), "the deploy snapshot")
+    check_off(deployed, deployed.get("build_config"), "the deploy snapshot",
+              allow_deleted_keys=args.target == "preview")
     expected_active = args.deployment_id if args.target == "production" else args.prior_production
     require(verify_project(pages_api(), args.target, args.branch) == expected_active,
             "Unexpected active Production deployment")

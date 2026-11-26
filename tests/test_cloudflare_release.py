@@ -36,6 +36,26 @@ class CloudflareReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Analytics injection"):
             release.verify_project(self.project, "preview", "ci-12-1")
 
+    def test_preview_accepts_only_null_entries_left_by_cloudflare_variable_deletion(self):
+        deleted = dict.fromkeys(release.ACTIVATION_KEYS)
+        self.project["deployment_configs"]["preview"]["env_vars"] = deleted.copy()
+        self.assertEqual(release.verify_project(self.project, "preview", "ci-12-1"), self.prior_id)
+        self.project["deployment_configs"]["production"]["env_vars"] = deleted.copy()
+        with self.assertRaisesRegex(ValueError, "activation keys"):
+            release.verify_project(self.project, "production", "main")
+
+        key = "AGENTART_HOME_MEASUREMENT_MODE"
+        for value in ({"type": "plain_text", "value": ""}, {"type": "secret_text"}, False, ""):
+            with self.subTest(value=value):
+                self.project["deployment_configs"]["preview"]["env_vars"] = {**deleted, key: value}
+                with self.assertRaisesRegex(ValueError, "activation keys"):
+                    release.verify_project(self.project, "preview", "ci-12-1")
+        with self.assertRaisesRegex(ValueError, "Invalid environment variables"):
+            release.check_off({"env_vars": []}, None, "preview", allow_deleted_keys=True)
+        with self.assertRaisesRegex(ValueError, "Analytics injection"):
+            release.check_off({"env_vars": deleted}, {"web_analytics_tag": "fixture"},
+                              "preview", allow_deleted_keys=True)
+
     def test_verified_artifact_rejects_manifest_file_and_inventory_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

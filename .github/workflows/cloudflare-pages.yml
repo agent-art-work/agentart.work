@@ -85,6 +85,8 @@ jobs:
         (inputs.target == 'production' && github.ref == 'refs/heads/main' && inputs.expected_production != '')))
     needs: build
     uses: ./.github/workflows/cloudflare-pages-deploy.yml
+    secrets:
+      CLOUDFLARE_PAGES_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
     with:
       target: preview
       branch: ci-${{ github.run_id }}-${{ github.run_attempt }}

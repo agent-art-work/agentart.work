@@ -2,6 +2,9 @@ name: Deploy a verified Cloudflare Pages artifact
 
 on:
   workflow_call:
+    secrets:
+      CLOUDFLARE_PAGES_API_TOKEN:
+        required: false
     inputs:
       target:
         type: string

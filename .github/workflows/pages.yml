@@ -30,8 +30,8 @@ jobs:
           python3 -B scripts/check.py
           python3 -B -m unittest discover -s tests
           git diff --check
-          npm test
           npm run build
+          npm test
           npm run check:site
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

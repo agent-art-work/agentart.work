@@ -27,7 +27,8 @@ The website release is stable; the bundled Protocol SDK remains `0.1.5-alpha.2`.
 See [current status](HANDOFF.md#current-position) for verification and follow-up work.
 
 [Make a work with your Agent](docs/CREATE.md) introduces the separately published
-`artwork-alpha.1` SDK prerelease, with installation, downloads and support.
+`artwork-macos-alpha.3` and `artwork-linux-alpha.3` SDK prereleases, with platform
+downloads, qualification limits and an optional two-Work walkthrough.
 The site's existing reading SDK and assets remain unchanged.
 
 Agent Art Work is the umbrella; **Blog** replaces the Lab as the public
@@ -83,7 +84,7 @@ Repository visibility is public. No reuse license has been selected. See the
 | [Works](docs/WORKS.md) | A showroom for THOUGHT and other works, with artist attribution and links to their owning sites. |
 | Blog | One dated article feed at `/blog/`, retaining the slogan “Articles, studies and working notes on Agent Art.” |
 | [Protocol](docs/PROTOCOL.md) | Public overview of the developing infrastructure; specifications, SDK and implementation stay with `agent-art-protocol`. |
-| [Make a work with your Agent](docs/CREATE.md) | Artwork SDK alpha.1: versioned installation, release downloads, support and qualification for building a participation app. |
+| [Make a work with your Agent](docs/CREATE.md) | Artwork SDK alpha.3: separate macOS/Linux downloads, installation, qualification and optional two-Work walkthrough for building a participation app. |
 | [Ask your Agent](docs/ASK_YOUR_AGENT.md) | The Protocol reading component and how visitors take public context into their chosen Agent. |
 | [Research guidance](GUIDANCE.md) | Optional research guidance inherited from Lab; not a website or publication workflow. |
 | [Research notes](research/README.md) | Sources, what they suggest, and where transfer is unsupported. |

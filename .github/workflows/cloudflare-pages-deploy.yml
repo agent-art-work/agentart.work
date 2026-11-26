@@ -1,0 +1,76 @@
+name: Deploy a verified Cloudflare Pages artifact
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      artifact_name:
+        type: string
+        required: true
+      manifest_sha256:
+        type: string
+        required: true
+      expected_production:
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'preview' || (inputs.target == 'production' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: cloudflare-${{ inputs.target }}
+    env:
+      RELEASE_DIRECTORY: local/ci-pages-release
+      TARGET: ${{ inputs.target }}
+      RELEASE_BRANCH: ${{ inputs.branch }}
+      EXPECTED_PRODUCTION: ${{ inputs.expected_production }}
+      MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: local/ci-pages-release
+      - name: Verify the exact release files
+        run: python3 -B scripts/check_cloudflare_release.py artifact "$RELEASE_DIRECTORY" "$MANIFEST_SHA256"
+      - name: Check the Pages environment and save the rollback ID
+        id: preflight
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          active=$(python3 -B scripts/check_cloudflare_release.py preflight "$TARGET" "$RELEASE_BRANCH" "$EXPECTED_PRODUCTION")
+          echo "active=$active" >> "$GITHUB_OUTPUT"
+          printf 'Production before deploy: `%s`\n' "$active" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the verified artifact
+        id: deploy
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.81.0'
+          workingDirectory: local/ci-pages-release
+          command: pages deploy _site --project-name=agentart-work --branch=${{ inputs.branch }} --commit-hash=${{ github.sha }} --commit-dirty=false
+      - name: Verify the deployment and its served OFF files
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PRIOR_PRODUCTION: ${{ steps.preflight.outputs.active }}
+          DEPLOYMENT_ID: ${{ steps.deploy.outputs.pages-deployment-id }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          DEPLOYMENT_ENVIRONMENT: ${{ steps.deploy.outputs.pages-environment }}
+        run: |
+          set -euo pipefail
+          python3 -B scripts/check_cloudflare_release.py verify "$RELEASE_DIRECTORY" "$MANIFEST_SHA256" "$TARGET" "$RELEASE_BRANCH" \
+            "$PRIOR_PRODUCTION" "$DEPLOYMENT_ID" "$DEPLOYMENT_URL" "$DEPLOYMENT_ENVIRONMENT" "$GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"

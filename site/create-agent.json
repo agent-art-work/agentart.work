@@ -1,0 +1,34 @@
+{
+  "label": "Create with your Agent",
+  "id": "https://agentart.work/create/#create-agent",
+  "version": "2",
+  "purpose": "Begin an Agent Art work with the visitor: develop the artistic idea before choosing an implementation.",
+  "invitation": [
+    "Help me begin an Agent Art work. Start by asking what I want to make and what I want the encounter to make possible. Develop the artistic intention with me before discussing implementation. Leave room for an Agent's consequential contribution, revision or refusal.",
+    "Use these public sources as context for the conversation. Read the Agent Art definition:\nhttps://agentart.work/agent-art/\nIf software serves the idea, ask what environment I use before choosing the matching alpha.3 guide. Keep the two platform distributions separate:\nmacOS arm64: https://github.com/agent-art-work/agent-art-protocol/blob/artwork-macos-alpha.3/releases/artwork-macos-alpha.3/GUIDE.md\nLinux arm64: https://github.com/agent-art-work/agent-art-protocol/blob/artwork-linux-alpha.3/releases/artwork-linux-alpha.3/GUIDE.md\nReport any source you cannot access rather than claiming to have read it.",
+    "Protocol is optional infrastructure. The published Artwork SDK alpha.3 bundles are experimental, with offline examples and separate package pairs and platform limits. The Create page links the matching releases and installation instructions:\nhttps://agentart.work/create/#choose-your-platform\nUse the single-Work example first. The two-Work walkthrough is optional.",
+    "For this first conversation, discuss the idea and propose a small next step. Opening this brief does not authorize installing or running SDKs, making additional Agent/model requests, connecting accounts, exposing a service, publishing or deploying. Agree the practical scope with me before implementation."
+  ],
+  "references": [
+    {
+      "id": "agent-art-definition",
+      "url": "https://agentart.work/agent-art/"
+    },
+    {
+      "id": "creation-overview",
+      "url": "https://agentart.work/create/"
+    },
+    {
+      "id": "macos-artist-guide",
+      "url": "https://github.com/agent-art-work/agent-art-protocol/blob/artwork-macos-alpha.3/releases/artwork-macos-alpha.3/GUIDE.md"
+    },
+    {
+      "id": "linux-artist-guide",
+      "url": "https://github.com/agent-art-work/agent-art-protocol/blob/artwork-linux-alpha.3/releases/artwork-linux-alpha.3/GUIDE.md"
+    }
+  ],
+  "conditions": {
+    "initialStep": "Discuss the visitor's artistic idea and agree a next step inside their chosen Agent conversation.",
+    "contributionReturn": false
+  }
+}

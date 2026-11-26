@@ -240,7 +240,7 @@ main { min-width: 0; }
 /* Site-wide reading utility, separate from each page's content. */
 .site-reading { margin: 36px auto 0; padding-top: 32px; border-top: 1px solid var(--line); }
 .site-agent-reading { width: 390px; min-width: 0; max-width: 100%; }
-#ask-your-agent {
+#ask-your-agent, #create-agent {
   --aap-signal: var(--accent);
   --aap-field-tint: 15%;
   --aap-label-tint: 30%;
@@ -273,7 +273,7 @@ main { min-width: 0; }
   background: transparent;
 }
 .footer-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px 30px; }
-.footer-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; }
 .footer-brand img { width: 24px; height: 24px; }
 .logo-slot { display: inline-flex; flex: none; }
 .logo-field { display: block; line-height: 0; }
@@ -483,3 +483,7 @@ main { min-width: 0; }
 .logo-inline { vertical-align: middle; margin-inline: 10px; }
 
 .logo-below { margin-top: 12px; padding-left: calc(50% - var(--grid-logo-size) / 2); }
+
+.create-agent-action { margin-block: 24px 30px; }
+.create-agent-action .site-agent-reading { width: max-content; }
+#create-agent { --aap-font-family: var(--site-font); }

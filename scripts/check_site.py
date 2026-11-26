@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 from check_agent_documents import check_agent_documents, public_agent_files, source_catalogue
 from check_retained_sdk import check_retained_sdk
 from check_reading_assets import check_reading_assets
+from check_create_assets import check_create_assets
 from check_analytics import check_analytics
 
 
@@ -170,6 +171,10 @@ def check_site(root, base):
     if (root / "site/assets/agent-art-reading.mjs").is_file():
         reading_errors, reading_files = check_reading_assets(root, output)
         errors.extend(reading_errors)
+    creation_files = set()
+    if (root / 'site/create-agent.json').is_file():
+        creation_errors, creation_files = check_create_assets(root, output, base)
+        errors.extend(creation_errors)
     try:
         agent_files = public_agent_files(root)
         routes, _ = source_catalogue(root)
@@ -195,7 +200,7 @@ def check_site(root, base):
                     and relative not in PUBLIC_CURRENT_SDK | retained_files):
                 errors.append(f"unlisted SDK output file: {relative}")
                 continue
-            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES | retained_files | reading_files | analytics_files)):
+            if name.startswith(".") or (path.suffix not in PUBLIC_TYPES and relative not in agent_files and relative not in PUBLIC_SCRIPTS and relative not in (PUBLIC_FONT_ASSETS | PUBLIC_SDK_NOTICES | retained_files | reading_files | creation_files | analytics_files)):
                 errors.append(f"non-public output file: {relative}")
                 continue
             files.append(path)

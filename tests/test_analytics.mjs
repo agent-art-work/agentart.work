@@ -46,3 +46,27 @@ test('no runtime activation even with forged config or changes to route/consent'
   assert.equal(c.status().qualified,false);assert.equal(c.status().collecting,false);
   f.values.set('agentart.analytics.preference.v1','{"choice":"allow"}');assert.equal(c.status().collecting,false);
 });
+
+test('private exclusion helper initialization preserves exact values and all synthetic functional state', () => {
+  const unrelated = {'saved-work':'fixture drawing', 'scenario':'fixture scenario', 'reading-state':'fixture reading', 'auth-state':'fixture auth', 'legacy.ga4.consent':'allow'};
+  for (const value of [null, '0', '1', '', 'corrupt', '{"unexpected":true}']) {
+    const initial = {...unrelated, ...(value === null ? {} : {[KEY]:value})};
+    const f=fixture(initial);const before=[...f.values];
+    assert.equal(f.controller.status().excluded, value !== null && value !== '0');
+    assert.equal(f.controller.status().collecting,false);
+    assert.deepEqual([...f.values],before);assert.deepEqual(f.writes,[]);
+  }
+});
+test('missing or zero exclusion cannot bypass automation, path, origin or referrer guards', () => {
+  for (const value of [null, '0']) {
+    const f=fixture(value===null?{}:{[KEY]:value});
+    const c={url:origin+'/',referrer:'',navigator:{},storage:f.storage};
+    for (const override of [{navigator:{webdriver:true}}, {navigator:{userAgent:'HeadlessChrome'}},
+      {url:'http://localhost/'}, {url:origin+'/ask-your-agent/'}, {url:origin+'/?private=x'},
+      {referrer:'https://example.com/'}, {referrer:origin+'/auth/'}, {referrer:undefined},
+      {storage:{getItem(){throw Error('fixture unavailable storage')}}}]) {
+      assert.equal(measurementContextAllowed({...c,...override}),false);
+    }
+    assert.equal(f.controller.status().collecting,false);assert.deepEqual(f.writes,[]);
+  }
+});

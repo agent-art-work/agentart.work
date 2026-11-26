@@ -9,11 +9,11 @@ The stable website baseline is
 released and verified on agentart.work on 2026-10-25 at `34eb927`.
 The bundled Protocol SDK retains its separate `0.1.5-alpha.2` designation.
 
-Local-only follow-up (2026-11-03): [optional measurement migration](analytics.md)
-removes GA4 and the consent panel, retains browser exclusion through quiet
-Privacy information, and keeps all collection off. Manual Cloudflare regional
-and navigation behavior is unqualified. No publication or provider change is
-included; the prior GA4 production release is preserved in Git history.
+The retained Pages baseline verified on 2026-11-25 defaults to collection OFF
+with public measurement controls removed. It preserves the private browser
+exclusion and the Home-only installer. The separate static GitHub recovery
+output is collector-free. See [Home measurement](analytics.md) for delivery
+and the remaining activation checks.
 
 Start from [AGENTS](../AGENTS.md) and [current status](../HANDOFF.md#current-position),
 then read the sources relevant to the requested website change. This is the
@@ -32,8 +32,8 @@ The dot texture and shared reading layout are retained in both modes.
 The global top navigation aligns with the centered reading column and has
 no visible group heading or divider. On mobile it uses two compact rows.
 Home uses the same footer as regular pages: Ask your Agent followed by the
-umbrella identity and one continuous list of links. Agent Art, Protocol, Works,
-Blog, About, Ask your Agent, GitHub and X complete the footer. X links to
+umbrella identity and links to Blog, About and Ask your Agent. Footer links
+complement the top menu. X in the top menu links to
 `https://x.com/AgentArt_work`; About shows the handle, and shared pages declare
 `@AgentArt_work` in their `twitter:site` metadata. Links wrap naturally
 within the reading width with compact gaps. About explains the site's activities
@@ -82,22 +82,32 @@ New navigation links do not force that scroll position.
 
 `/protocol/` renders the reviewed public summary in `docs/PROTOCOL.md`.
 `/create/` renders `docs/CREATE.md`, the artist/coding-Agent entry for the
-published `artwork-alpha.1` SDK distribution. Protocol, About and the footer
-link to it; the existing top navigation stays unchanged. The page and its
-complete Markdown envelope are included in `agent-index.json` and `llms.txt`.
-Release, installation, brief, support and qualification links are pinned to
-`artwork-alpha.1`, not the repository's moving main branch. The SDK is not
-installed into this website. Its package versions remain `0.0.0-mcp.1` and
-optional `0.0.0-account.1`; it does not upgrade the reading SDK.
+published `artwork-macos-alpha.3` and `artwork-linux-alpha.3` distributions.
+Create follows Protocol in the top menu. Protocol and About also link to it.
+The page and its complete Markdown envelope are included in
+`agent-index.json` and `llms.txt`. Generate these from the canonical source;
+do not hand-edit the exported knowledge index or document hashes.
 
-The docs integration does not install or execute the Artwork SDK. Analytics
-sources, configuration and workflow remain unchanged from main `23a5aba`:
-the production analytics rebuild step is absent, and the build returns OFF
-regardless of legacy production variables. Keep collection OFF and preserve the
+Keep the platform downloads and their tagged installation, guide and
+qualification links separate. macOS retains `0.0.0-mcp.1` / `0.0.0-account.1`;
+Linux retains `0.0.0-planned-transfer.2` / `0.0.0-account-linux.1`. Each keeps its
+published alpha.2 package pair and lock. Alpha.3 adds the same optional two-Work
+walkthrough and fixtures to both archives, following the original single-Work
+example. These are offline synthetic proofs, not live Agent trials. The exact
+archives passed both examples on macOS arm64 and Ubuntu 24.04.5 LTS arm64 with
+private guest-local ext4 respectively; the Create source retains the full
+runtime and trust limits. This website does not install the Artwork SDK or
+upgrade the reading SDK.
+
+“Create with your Agent” carries the visitor’s idea into their chosen Agent
+conversation with both tagged alpha.3 guides. The fallback leads to the matching
+platform sections on the page. The Artwork SDK remains a separate installation.
+The static build and the Pages package both default to collection OFF. Keep the
+private exclusion preference and the reviewed public measurement cleanup. Preserve the
 current reading adapter/Work, legacy query-hash routers, retained SDK archives
 and snapshots. Local page/export checks do not qualify the Artwork SDK runtime
-or close any analytics/OPS gate. The published release supersedes the frozen
-bundle's preparation-time publication wording, which remains unchanged.
+or close any analytics/OPS gate. The published prereleases supersede the frozen
+bundles’ preparation-time publication wording, which remains unchanged.
 
 `/ask-your-agent/` renders `docs/ASK_YOUR_AGENT.md`, the visitor explanation of
 Protocol's reading component. `/about/` renders `docs/AGENT_ART_WORK.md`.
@@ -106,14 +116,14 @@ are not automatically copied or exported.
 
 The shared global top bar has only the Off grid logo at the left, linking home
 with the accessible name “Agent Art Work home”. The navigation beside it is
-Agent Art, Protocol, Works, GitHub and X on every shared-layout page.
+Agent Art, Protocol, Create, Works, GitHub and X on every shared-layout page.
 Blog remains in the footer and retains its articles and historical URLs.
 The compact X link opens `@AgentArt_work`, with the handle in its hover hint
-and accessible label, matching the footer.
+and accessible label.
 GitHub links to the Agent Art Work organization; About remains in the footer. Ask your Agent stays
 available as the shared reading control, with its explanation linked from
 Protocol and About; it has no top-menu item.
-On mobile the five links retain two compact rows beside the logo. The footer GitHub link also opens the organization. The website repository
+On mobile the menu uses compact rows beside the logo. The footer brand opens the organization. The website repository
 remains linked from About. Article source
 and history links point at `agent-art-work/agentart.work`. Technical retrieval
 links remain on Ask your Agent; contribution guidance is linked from Blog.
@@ -497,28 +507,23 @@ labels. Quiet editorial was selected and applied to the production blog; the
 demo styles remain isolated to preserve the original comparison.
 Links and copy buttons work, and all previews remain readable without JavaScript.
 
-GitHub Pages uses the existing repository's GitHub Actions source and the custom
-domain `agentart.work`, configured in Pages settings. Cloudflare serves four
-GitHub Pages A records, four AAAA records and a
-`www` CNAME pointing to `agent-art-work.github.io`, all DNS-only in Cloudflare.
-GitHub retained domain verification, the valid apex/www certificate and HTTPS
-enforcement after the rename on 2026-10-03. Live pages, agent exports and
-redirects to `https://agentart.work/` passed, retaining article and document paths.
-The `www` target and `_github-pages-challenge-agent-art-work` TXT record were
-verified through public DNS on 2026-10-03 using GitHub's retained verification
-value. HTTPS and path-preserving redirects passed again after the DNS update.
-Retain the ownership TXT record; the earlier challenge record is also preserved.
-This Actions deployment does not use a `CNAME` file. The pinned
-workflow builds and checks pull requests; pushes to `main` also deploy `_site`.
+GitHub is the source repository. The Cloudflare Pages project `agentart-work`
+serves the canonical domain and hosts release staging. Build from a reviewed
+commit, verify the packaged OFF artifact on an immutable Cloudflare Preview,
+then submit the same archive to Production under its release approval. See the
+[release and recovery runbook](../delivery/cloudflare-pages/RELEASE.md).
+The static GitHub Pages deployment remains the transition fallback.
+
+The existing [GitHub Pages workflow](../.github/workflows/pages.yml) builds and
+checks pull requests. A change to `main` also republishes the fallback from
+`_site/`. Account for that side effect when landing changes during the
+transition. Earlier GitHub-only DNS and domain settings are retained in the
+recovery record. Use the current OPS record before any routing change.
+
 Reading requires no client JavaScript, remote fonts, analytics, database or
 third-party runtime. The homepage loads the optional local SDK assets alongside
-its copy script; the demo retains its separate copy script.
-Build dependencies are pinned in `package-lock.json` and can be
-updated through an ordinary reviewed change.
+its copy script. Build dependencies remain pinned in `package-lock.json`.
 
-To roll back a site change, revert its source commit and publish through the
-same workflow. The documentation history remains in Git. Publication does not
-change the repository's visibility, reuse licensing or project ownership.
 ## Works showroom
 
 `docs/WORKS.md` is the canonical source for `/works/` and its Agent document

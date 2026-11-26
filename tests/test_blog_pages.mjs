@@ -4,7 +4,6 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { createReading } from '@agent-art/protocol/reading';
 import { before, test } from 'node:test';
 import MarkdownIt from 'markdown-it';
 import { analyticsBuildConfig } from '../scripts/analytics-assets.mjs';
@@ -100,25 +99,19 @@ test('unqualified manual collection stays off in every build context, including 
   assert.doesNotMatch(read('.github/workflows/pages.yml'), /AGENTART_ANALYTICS_|AGENTART_CF_/);
 });
 
-test('every shared page has quiet Privacy, no consent prompt and no vendor resource', () => {
+test('public pages have no measurement controls or handlers; shared config remains OFF', () => {
+  assert.equal(readdirSync(path.join(root, '_site/assets')).some(file => /^analytics[.-].*\.(?:mjs|js|css)$/.test(file)), false);
   for (const file of readdirSync(path.join(root, '_site'), { recursive: true }).filter(file => file.endsWith('.html'))) {
     const html = read(`_site/${file}`);
+    assert.doesNotMatch(html, /site-privacy|privacy-information|analytics-notice|analytics-settings|analytics-status|data-analytics-action/);
+    assert.doesNotMatch(html, /(?:src|href)=["'][^"']*assets\/analytics[.-]/);
+    assert.doesNotMatch(html, /<(?:script|link|iframe)[^>]+(?:src|href)="https?:\/\/[^\"]*(?:google-analytics|googletagmanager|cloudflareinsights)/);
     if (!html.includes('class="site-footer"')) {
       assert.ok(!html.includes('id="analytics-config"'), 'isolated demos never start analytics');
       continue;
     }
     const config = JSON.parse(html.match(/<script type="application\/json" id="analytics-config">(.*?)<\/script>/)[1]);
-    assert.equal(config.enabled, false);
-    assert.equal(config.siteToken, null);
-    assert.ok(html.includes('<summary>Privacy</summary>'));
-    assert.doesNotMatch(html, /analytics-notice|analytics-settings|data-analytics-action="allow"/);
-    assert.ok(html.includes('data-analytics-action="exclude"'));
-    assert.ok(html.includes('data-analytics-action="include"'));
-    assert.doesNotMatch(html, /<(?:script|link|iframe)[^>]+(?:src|href)="https?:\/\/[^\"]*(?:google-analytics|googletagmanager|cloudflareinsights)/);
-    const script = html.match(/src="[^\"]*\/(assets\/analytics\.([a-f0-9]{64})\.mjs)"/);
-    assert.ok(script, 'content-addressed, self-contained analytics entry');
-    assert.equal(createHash('sha256').update(read(`_site/${script[1]}`)).digest('hex'), script[2]);
-    assert.doesNotMatch(read(`_site/${script[1]}`), /^import /m);
+    assert.deepEqual(config, { enabled: false, siteToken: null, production: false });
   }
 });
 
@@ -166,7 +159,7 @@ test('the homepage is the complete locked manifesto with shared footer and refer
   assert.equal(groups.length, 1);
   for (const group of groups) assert.equal(elements(group.inner, 'h2').length, 0);
   assert.equal(elements(top.inner, 'nav', 'home-reference').length, 0);
-  assert.equal(elements(top.inner, 'a').length, 6);
+  assert.equal(elements(top.inner, 'a').length, 7);
   const homeBrand = one(top.inner, 'a', 'brand');
   assert.equal(text(homeBrand.inner), '');
   assert.equal(homeBrand.attrs['aria-label'], 'Agent Art Work home');
@@ -239,6 +232,7 @@ test('reading controls mount before the manual disclosure and preserve the exact
   const homepage = read('_site/index.html');
   assert.ok(homepage.indexOf('id="ask-your-agent"') < homepage.indexOf('id="agent-prompt-disclosure"'));
   const assets = readingAssets();
+  const { createReading } = await import('@agent-art/protocol/reading');
   const { default: work } = await import(pathToFileURL(path.join(root, `_site/assets/${assets.work}`)).href);
   const reading = createReading({ work });
   const canonical = read('docs/AGENT_ACCESS.md').match(/## A prompt to use\s+```text\n([\s\S]*?)\n```/)?.[1];
@@ -370,11 +364,11 @@ test('Agent Art Work navigation and the shared reading utility serve every site 
       assert.equal(navigation.length, 1, file);
       const links = elements(navigation[0].inner, 'a');
       assert.deepEqual(links.map(link => link.attrs.href), [
-        `${base}/agent-art/`, `${base}/protocol/`,
+        `${base}/agent-art/`, `${base}/protocol/`, `${base}/create/`,
         `${base}/works/`, 'https://github.com/agent-art-work', 'https://x.com/AgentArt_work',
       ], file);
       assert.deepEqual(links.map(link => text(link.inner)),
-        ['Agent Art', 'Protocol', 'Works', 'GitHub', 'X'], file);
+        ['Agent Art', 'Protocol', 'Create', 'Works', 'GitHub', 'X'], file);
       const brand = one(one(page, 'header', 'site-header').inner, 'a', 'brand');
       assert.equal(brand.attrs.href, `${base}/`, file);
       assert.equal(brand.attrs['aria-label'], 'Agent Art Work home', file);
@@ -400,7 +394,8 @@ test('Agent Art Work navigation and the shared reading utility serve every site 
     assert.equal(scripts.filter(script => script.attrs.src === `${base}/assets/copy-prompt.js`).length, 1, file);
     assert.equal(scripts.filter(script => script.attrs.src === `${base}/assets/${readingAssets().adapter}`).length, 1, file);
     const footer = one(page, 'footer', 'site-footer');
-    assert.ok(elements(footer.inner, 'a').some(link => link.attrs.href === 'https://x.com/AgentArt_work' && text(link.inner) === 'X'), file);
+    const footerLinks = elements(footer.inner, 'a');
+    assert.deepEqual(footerLinks.map(link => link.attrs.href), [`${base}/blog/`, `${base}/about/`, `${base}/ask-your-agent/`], file);
     assert.ok(page.includes('<meta name="twitter:site" content="@AgentArt_work">'), file);
     assert.ok(page.includes(`${base}/assets/agent-art-sdk/0.1.5-alpha.2/reading.css`), file);
     checked += 1;
@@ -431,7 +426,7 @@ test('the manifesto preserves the locked manuscript, complete paragraph order an
     .filter(paragraph => elements(paragraph.inner, 'strong').length === 1)
     .map(paragraph => text(paragraph.inner)), emphaticTurns,
   'each emphatic turn remains its own complete paragraph');
-  assert.ok(elements(one(page, 'footer', 'site-footer').inner, 'a')
+  assert.ok(elements(one(page, 'header', 'manifesto-top').inner, 'a')
     .some(link => link.attrs.href === `${base}/agent-art/` && text(link.inner)),
   'the manifesto leads readers to the separate definition');
 });
@@ -593,8 +588,8 @@ test('the artwork creation entry is discoverable without replacing the reading c
     assert.ok(elements(one(read(`_site/${route}index.html`), 'div', 'prose').inner, 'a')
       .some(a => a.attrs.href === `${base}/create/`), `${route} points to creation`);
   }
-  assert.ok(elements(one(page, 'nav', 'footer-links').inner, 'a')
-    .some(a => a.attrs.href === `${base}/create/` && text(a.inner) === 'Create'));
+  const active = elements(one(page, 'nav', 'site-nav').inner, 'a').filter(a => a.attrs['aria-current'] === 'page');
+  assert.deepEqual(active.map(a => a.attrs.href), [`${base}/create/`]);
   assert.ok(read('_site/llms.txt').includes(`[Make a work with your Agent](${base}/documents/docs-create.json)`));
   assert.equal(elements(page, 'section', 'site-reading').length, 1);
   const index = JSON.parse(read('_site/agent-index.json'));
@@ -602,27 +597,134 @@ test('the artwork creation entry is discoverable without replacing the reading c
   assert.ok(index.documents.some(d => d.id === 'docs-agent-access'));
 });
 
-test('artwork alpha links identify the published distribution, exact packages and frozen support snapshot', () => {
+function artworkSection(page, id) {
+  const match = page.match(new RegExp(`<h([23]) id="${id}">[\\s\\S]*?<\\/h\\1>([\\s\\S]*?)(?=<h[23]\\b|$)`));
+  assert.ok(match, `missing release section ${id}`);
+  return match[2];
+}
+
+const artworkProtocolRepository = 'https://github.com/agent-art-work/agent-art-protocol';
+
+// Pins reviewed against each release's BUNDLE.json and QUALIFICATION.json.
+// Keeping them paired catches a valid Linux archive accidentally placed under macOS.
+const artworkPlatforms = [
+  {
+    id: 'macos-arm64', tag: 'artwork-macos-alpha.3',
+    packages: ['@agent-art/artwork-sdk@0.0.0-mcp.1', '@agent-art/participation-account@0.0.0-account.1'],
+    bytes: '605,490', sha256: '18b526fbfb9ec2f4e1b492ce6169765c12f256c63bae0176e7b2a993e65d3f5c',
+    cohort: /macOS arm64, Node 22\.23\.4, SQLite 3\.53\.4 and npm 10\.9\.9/,
+    limits: /not a claim for every macOS environment or Agent client/,
+  },
+  {
+    id: 'linux-arm64', tag: 'artwork-linux-alpha.3',
+    packages: ['@agent-art/artwork-sdk@0.0.0-planned-transfer.2', '@agent-art/participation-account@0.0.0-account-linux.1'],
+    bytes: '572,285', sha256: '7c1c43d864bf50c394a999d9d774b578714fecd631e08dab99541afb5c4b68cf',
+    cohort: /Ubuntu 24\.04\.5 LTS arm64, private guest-local ext4, Node 22\.23\.4, SQLite 3\.53\.4 and npm 10\.9\.9.*non-root runtime owner/,
+    limits: /does not qualify other Linux distributions, architectures, shared filesystems or production operation/,
+  },
+];
+
+for (const platform of artworkPlatforms) {
+  test(`${platform.tag} keeps its download, package pair and qualified cohort together`, () => {
+    const body = artworkSection(read('_site/create/index.html'), platform.id);
+    const bodyText = text(body);
+    const expected = [
+      `${artworkProtocolRepository}/releases/tag/${platform.tag}`,
+      `${artworkProtocolRepository}/releases/download/${platform.tag}/agent-art-${platform.tag}.tar.gz`,
+      `${artworkProtocolRepository}/releases/download/${platform.tag}/BUNDLE.json`,
+      ...['INSTALL.md', 'GUIDE.md', 'QUALIFICATION.json']
+        .map(file => `${artworkProtocolRepository}/blob/${platform.tag}/releases/${platform.tag}/${file}`),
+    ];
+    assert.deepEqual(new Set(elements(body, 'a').map(link => link.attrs.href)), new Set(expected));
+    for (const pkg of platform.packages) assert.ok(bodyText.includes(pkg), `missing ${pkg}`);
+    const other = artworkPlatforms.find(item => item !== platform);
+    for (const pkg of other.packages) assert.ok(!bodyText.includes(pkg), `wrong-platform package ${pkg}`);
+    assert.ok(bodyText.includes(`${platform.bytes} bytes`));
+    assert.equal(text(one(body, 'pre').inner), platform.sha256);
+    assert.match(bodyText, platform.cohort);
+    assert.match(bodyText, platform.limits);
+  });
+}
+
+test('alpha.3 links are immutable, while platform packages and reading releases stay distinct', () => {
   const page = read('_site/create/index.html');
-  const prose = one(page, 'div', 'prose').inner;
-  const prefix = 'https://github.com/agent-art-work/agent-art-protocol';
-  const expected = [
-    `${prefix}/releases/tag/artwork-alpha.1`,
-    ...['INSTALL.md', 'ARTIST-AGENT.md', 'SUPPORT.md', 'QUALIFICATION.json']
-      .map(file => `${prefix}/blob/artwork-alpha.1/releases/artwork-alpha.1/${file}`),
-    `${prefix}/releases/download/artwork-alpha.1/agent-art-artwork-alpha.1.tar.gz`,
-    `${prefix}/releases/download/artwork-alpha.1/BUNDLE.json`,
-  ];
-  const links = elements(prose, 'a').map(a => a.attrs.href).filter(href => href.startsWith(prefix));
-  assert.deepEqual(new Set(links), new Set(expected));
-  assert.ok(links.every(href => !/\/(?:main|latest)(?:\/|$)/.test(href)));
-  assert.match(text(prose), /@agent-art\/artwork-sdk@0\.0\.0-mcp\.1/);
-  assert.match(text(prose), /@agent-art\/participation-account@0\.0\.0-account\.1/);
-  assert.equal(text(one(prose, 'pre').inner), '567092e6fe0b740910b66a66748ba4f00c8b90c4829c65d2ff16f041630ac1a3');
-  assert.match(text(prose), /622,892 bytes/);
-  assert.match(text(prose), /macOS arm64, Node 22\.23\.4, SQLite 3\.53\.4 and npm 10\.9\.9/);
-  assert.match(text(prose), /preparation-time.*prepared\/unpublished.*later publication/);
-  assert.match(text(prose), /67 consolidated local tests reported by its owner/);
-  assert.match(text(prose), /app tests were not independently rerun/);
-  assert.match(text(prose), /Reading releases and this site’s existing reading assets are unchanged/);
+  const artworkLinks = elements(page, 'a').map(link => link.attrs.href)
+    .filter(href => href.startsWith(artworkProtocolRepository) && /artwork-/.test(href));
+  assert.ok(artworkLinks.length > 10);
+  assert.ok(artworkLinks.every(href => !/\/(?:main|latest)(?:\/|$)/.test(href)));
+  assert.ok(artworkLinks.every(href => /artwork-(?:macos|linux)-alpha\.3/.test(href)));
+  const body = text(page);
+  assert.match(body, /Each retains its own published alpha\.2 packages and lock/);
+  assert.match(body, /not a new package version or stable Protocol standard/);
+  assert.match(body, /preparation-time.*prepared-unpublished.*later publication/);
+  assert.match(body, /Reading releases and this site’s existing reading assets and retained cache routes are unchanged/);
+});
+
+test('the optional two-Work exercise follows the single Work and preserves permission and evidence limits', () => {
+  const body = artworkSection(read('_site/create/index.html'), 'try-the-examples-in-order');
+  const walkthroughLinks = elements(body, 'a').map(link => link.attrs.href);
+  const bodyText = text(body);
+  assert.match(bodyText, /Start with the original single-Work.*optional.*two-Work.*then offers/);
+  assert.match(bodyText, /prior Agent’s stated intention as optional Context/);
+  assert.match(bodyText, /permission to reuse.*from permission to import/);
+  assert.match(bodyText, /Reader access is separate.*source note does not grant access/);
+  assert.match(bodyText, /two inspectable outcomes/i);
+  assert.match(bodyText, /app adds a broken underline/);
+  assert.match(bodyText, /sets the quote aside.*app preserves.*SVG byte for byte/);
+  assert.match(bodyText, /offline synthetic proofs with scripted contributions, not live Agent participation or verified real consent/);
+  assert.ok(walkthroughLinks.includes(`${artworkProtocolRepository}/blob/ccbd3568400e028aecb400a890c02aa3246fce9d/releases/artwork-macos-alpha.3/TWO-WORK.md`));
+  assert.ok(walkthroughLinks.includes(`${artworkProtocolRepository}/blob/artwork-linux-alpha.3/releases/artwork-linux-alpha.3/TWO-WORK.md`));
+  const protocol = text(read('_site/protocol/index.html'));
+  assert.match(protocol, /original single-Work example and an optional two-Work walkthrough/);
+  assert.match(protocol, /separate reuse\/import permissions.*offline synthetic proofs, not live Agent trials/);
+});
+
+test('the public knowledge export carries the exact current platform instructions and hashes', () => {
+  const index = JSON.parse(read('_site/agent-index.json'));
+  for (const id of ['docs-create', 'docs-protocol', 'docs-agent-art-work']) {
+    const descriptor = index.documents.find(document => document.id === id);
+    assert.ok(descriptor, `missing ${id}`);
+    const envelope = JSON.parse(read(`_site/documents/${id}.json`));
+    if (id === 'docs-agent-art-work') {
+      assert.match(envelope.content.replace(/\s+/g, ' '), /separate macOS and Linux Artwork SDK alpha\.3 releases/);
+    } else {
+      for (const { tag } of artworkPlatforms) assert.ok(envelope.content.includes(tag), `${id} omits ${tag}`);
+    }
+    assert.ok(!envelope.content.includes('artwork-alpha.1'));
+    assert.ok(read('_site/llms.txt').includes(descriptor.download.url));
+  }
+  const { revision, ...unsignedIndex } = index;
+  const serializedIndex = JSON.stringify(unsignedIndex, null, 2) + '\n';
+  assert.equal(revision, `sha256:${createHash('sha256').update(serializedIndex).digest('hex')}`);
+});
+
+test('Create’s desktop handoff and fallback use the visible alpha.3 guides', () => {
+  const page = read('_site/create/index.html');
+  const adapterPath = elements(page, 'script').map(script => script.attrs.src)
+    .find(src => /\/agent-art-create\.[a-f0-9]{64}\.mjs$/.test(src ?? ''));
+  assert.ok(adapterPath, 'Create selects its immutable creation entry');
+  const adapter = read(`_site/${adapterPath.slice(base.length + 1)}`);
+  const workName = adapter.match(/from '\.\/(agent-art-create-work\.[a-f0-9]{64}\.mjs)'/)?.[1];
+  assert.ok(workName);
+  const module = read(`_site/assets/${workName}`);
+  const work = JSON.parse(module.slice('export default '.length, -2));
+  const invitation = work.context.find(item => item.id === 'creation-invitation')?.text;
+  assert.equal(work.title, 'Create with your Agent');
+  assert.match(invitation, /^Help me begin an Agent Art work\./);
+  assert.match(invitation, /Start by asking what I want to make/);
+  assert.match(invitation, /Protocol is optional/);
+  assert.doesNotMatch(invitation, /artwork-alpha\.1|localhost|127\.0\.0\.1|\/Users\//);
+  const proseLinks = elements(one(page, 'div', 'prose').inner, 'a').map(link => link.attrs.href);
+  for (const { tag } of artworkPlatforms) {
+    const guide = `${artworkProtocolRepository}/blob/${tag}/releases/${tag}/GUIDE.md`;
+    assert.ok(proseLinks.includes(guide));
+    assert.ok(invitation.includes(guide));
+    assert.ok(work.context.some(item => item.mode === 'live' && item.url === guide));
+  }
+  assert.match(adapter, /mountReading\(element, \{ work, label: work.title, evidence: false \}\)/);
+  assert.match(page, /id="create-agent-fallback"><a href="#choose-your-platform">Read the alpha\.3 guides/);
+  assert.match(page, /id="choose-your-platform"/);
+  assert.doesNotMatch(page, /thought-example\.svg|create-opening/);
+  assert.ok(!read('_site/index.html').includes(adapterPath));
+  assert.notEqual(module, read(`_site/assets/${readingAssets().work}`));
 });

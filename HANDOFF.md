@@ -149,6 +149,14 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-11-26 website maintenance, **Create alpha.3 Cloudflare Preview**.
+  The operator approved a Preview-only release from PR #23 with collection
+  OFF. The migration branch can run Preview before merging. Main OPS owns
+  provisioning the environment's Pages credential. The website maintainer
+  owns the Actions run and its immutable Preview readback. Production and
+  the GitHub Pages fallback remain held. Record the Preview deployment ID
+  and artifact manifest when verification completes.
+
 - 2026-11-26 website maintenance, **Cloudflare Pages CI/CD migration**.
   The Actions workflow builds the collection-OFF Pages artifact, verifies
   its manifest in each deployment job, and uses the same files for Preview

@@ -5,8 +5,11 @@ hosts staging as Preview and serves `agentart.work` as Production. The same
 checked artifact moves through both environments. The GitHub Actions
 [release workflow](../../.github/workflows/cloudflare-pages.yml) uses Wrangler
 Direct Upload to the existing Pages project. Pull requests build and check the
-artifact. Deployments require an explicit workflow dispatch and the matching
-protected GitHub environment.
+artifact. The migration branch `codex/cloudflare-pages-ci` can start the
+Preview job on push before the workflow reaches the default branch. The
+protected Preview environment still requires a reviewer to release that job.
+Production requires a workflow dispatch on `main` and its own environment
+approval.
 
 ## Verified baseline and pending release
 

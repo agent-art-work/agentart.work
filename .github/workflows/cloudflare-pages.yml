@@ -2,6 +2,8 @@ name: Agent Art Work Cloudflare Pages
 
 on:
   pull_request:
+  push:
+    branches: [codex/cloudflare-pages-ci]
   workflow_dispatch:
     inputs:
       target:
@@ -17,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && 'agentart-cloudflare-release' || format('agentart-cloudflare-check-{0}', github.ref) }}
+  group: ${{ github.event_name != 'pull_request' && 'agentart-cloudflare-release' || format('agentart-cloudflare-check-{0}', github.ref) }}
   cancel-in-progress: false
 
 jobs:
@@ -76,7 +78,11 @@ jobs:
           retention-days: 30
 
   preview:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'preview' || (inputs.target == 'production' && github.ref == 'refs/heads/main' && inputs.expected_production != ''))
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/codex/cloudflare-pages-ci') ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.target == 'preview' ||
+        (inputs.target == 'production' && github.ref == 'refs/heads/main' && inputs.expected_production != '')))
     needs: build
     uses: ./.github/workflows/cloudflare-pages-deploy.yml
     with:

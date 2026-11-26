@@ -23,7 +23,10 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'preview' || (inputs.target == 'production' && github.ref == 'refs/heads/main'))
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/codex/cloudflare-pages-ci' && inputs.target == 'preview') ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.target == 'preview' || (inputs.target == 'production' && github.ref == 'refs/heads/main')))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: cloudflare-${{ inputs.target }}

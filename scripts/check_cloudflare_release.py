@@ -1,11 +1,13 @@
 """Verify the OFF Pages artifact, provider settings, and served file bytes."""
 import argparse
+from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import os
 from pathlib import Path
 import re
 import sys
+from time import monotonic, sleep
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -21,11 +23,26 @@ REHEARSAL_HEADER = "x-agentart-off-rehearsal"
 ANALYTICS_MARKERS = (b"data-cf-beacon", b"cloudflareinsights.com", b"site-privacy", b"data-analytics-action")
 UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 CREATION_MODULE = re.compile(r"assets/agent-art-create(-work)?\.[0-9a-f]{64}\.mjs")
+REQUEST_TIMEOUT = 12
+PRODUCTION_ALIAS_RETRY_DELAY = 5
+PRODUCTION_ALIAS_RETRY_WINDOW = 18
 
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
         return None
+
+
+class UnexpectedHTTPStatus(ValueError):
+    def __init__(self, url, error):
+        super().__init__(f"HTTP {error.code} for {url}")
+        self.status = error.code
+        headers = error.headers or {}
+        ray = headers.get("CF-Ray", "")
+        self.cloudflare_ray = (
+            ray if headers.get("Server", "").lower() == "cloudflare"
+            and re.fullmatch(r"[0-9a-fA-F]{16,32}-[A-Z]{3}", ray) else None
+        )
 
 
 def require(condition, message):
@@ -64,7 +81,7 @@ def verify_artifact(directory, expected_hash):
     return actual
 
 
-def request(url, expected_status=200, token=None):
+def request(url, expected_status=200, token=None, *, timeout=REQUEST_TIMEOUT):
     headers = {
         "Accept-Encoding": "identity",
         "User-Agent": "AgentArtWork-ReleaseVerifier/1.0",
@@ -73,11 +90,11 @@ def request(url, expected_status=200, token=None):
         headers["Authorization"] = f"Bearer {token}"
     opener = build_opener(NoRedirect())
     try:
-        response = opener.open(Request(url, headers=headers), timeout=12)
+        response = opener.open(Request(url, headers=headers), timeout=timeout)
     except HTTPError as error:
         if error.code != expected_status:
             error.close()
-            raise ValueError(f"HTTP {error.code} for {url}") from None
+            raise UnexpectedHTTPStatus(url, error) from None
         response = error
     with response:
         require(response.status == expected_status, f"Expected HTTP {expected_status} for {url}")
@@ -131,7 +148,26 @@ def verify_project(project, target, branch):
     return active
 
 
-def check_served(origin, files, production):
+def read_home_redirect(origin, retry_initial_alias_404):
+    url = origin + "/index.html"
+    try:
+        return request(url, 308)[0]
+    except UnexpectedHTTPStatus as error:
+        if not retry_initial_alias_404 or error.status != 404 or not error.cloudflare_ray:
+            raise
+        deadline = monotonic() + PRODUCTION_ALIAS_RETRY_WINDOW
+        at = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+        print(f"{at} {error} (CF-Ray {error.cloudflare_ray}); retrying the immutable "
+              f"Production Home alias once after {PRODUCTION_ALIAS_RETRY_DELAY}s.", file=sys.stderr)
+        sleep(PRODUCTION_ALIAS_RETRY_DELAY)
+        remaining = deadline - monotonic()
+        require(remaining > 0, f"Production Home alias retry deadline exceeded for {url}")
+        headers, _ = request(url, 308, timeout=min(REQUEST_TIMEOUT, remaining))
+        require(monotonic() <= deadline, f"Production Home alias retry deadline exceeded for {url}")
+        return headers
+
+
+def check_served(origin, files, production, *, retry_initial_alias_404=False):
     routes = {
         "/": ("index.html", 200), "/?ops_m72_off=1": ("index.html", 200),
         "/index.html?ops_m72_off=1": ("index.html", 200),
@@ -142,7 +178,7 @@ def check_served(origin, files, production):
     require(len(modules) == 2 and {CREATION_MODULE.fullmatch(name)[1] for name in modules}
             == {None, "-work"}, "Missing or extra immutable Create modules")
     routes.update({f"/{name}": (name, 200) for name in modules})
-    headers, _ = request(origin + "/index.html", 308)
+    headers = read_home_redirect(origin, retry_initial_alias_404 and not production)
     require(headers.get("Location") == "/" and headers.get("CF-Ray")
             and headers.get("CDN-Cache-Control", "").lower() == "no-store",
             "Unexpected Home alias redirect")
@@ -182,7 +218,7 @@ def verify_deployment(args, files):
             "Unexpected active Production deployment")
     print(f"{args.target.title()} deployment: {origin} (`{args.deployment_id}`)")
     print(f"Source: `{args.commit}` · manifest: `{args.manifest_sha256}`")
-    check_served(origin, files, production=False)
+    check_served(origin, files, production=False, retry_initial_alias_404=args.target == "production")
     if args.target == "production":
         check_served(SITE, files, production=True)
 

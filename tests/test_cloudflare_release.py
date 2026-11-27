@@ -1,11 +1,15 @@
 """Offline checks for the release workflow's artifact and environment boundaries."""
+from contextlib import redirect_stderr
 import hashlib
+from io import StringIO
 import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import call, patch
+from urllib.error import HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import check_cloudflare_release as release
@@ -13,6 +17,8 @@ import check_cloudflare_release as release
 
 class CloudflareReleaseTests(unittest.TestCase):
     prior_id = "00000000-0000-4000-8000-000000000001"
+    fixture_origin = "https://abcdabcd.agentart-work.pages.dev"
+    cloudflare = {"Server": "cloudflare", "CF-Ray": "0123456789abcdef-SEA"}
 
     def setUp(self):
         self.project = {
@@ -96,6 +102,90 @@ class CloudflareReleaseTests(unittest.TestCase):
         request = open_request.call_args.args[0]
         self.assertEqual(request.get_header("User-agent"), "AgentArtWork-ReleaseVerifier/1.0")
 
+    def test_first_immutable_production_alias_rechecks_one_cloudflare_404(self):
+        url = self.fixture_origin + "/index.html"
+        failed = HTTPError(url, 404, "Not Found", self.cloudflare, None)
+        log = StringIO()
+        with (patch.object(release, "build_opener") as opener,
+              patch.object(release, "sleep") as wait,
+              patch.object(release, "monotonic", side_effect=[100, 105, 106]),
+              redirect_stderr(log)):
+            response = opener.return_value.open.return_value
+            response.status = 308
+            response.headers = {"Location": "/"}
+            response.read.return_value = b""
+            opener.return_value.open.side_effect = [failed, response]
+            self.assertEqual(release.read_home_redirect(self.fixture_origin, True), {"Location": "/"})
+
+        wait.assert_called_once_with(5)
+        self.assertEqual([entry.args[0].full_url for entry in opener.return_value.open.call_args_list],
+                         [url, url])
+        self.assertRegex(log.getvalue(), r"\d{4}-\d\d-\d\dT\S+ HTTP 404")
+        self.assertIn("CF-Ray 0123456789abcdef-SEA", log.getvalue())
+
+    def test_alias_does_not_retry_other_status_unrecognized_edge_or_other_origins(self):
+        url = self.fixture_origin + "/index.html"
+        for enabled, status, headers in (
+            (True, 503, self.cloudflare),
+            (True, 404, {"Server": "cloudflare"}),
+            (True, 404, {**self.cloudflare, "Server": "other"}),
+            (False, 404, self.cloudflare),
+        ):
+            with HTTPError(url, status, "", headers, None) as response:
+                failed = release.UnexpectedHTTPStatus(url, response)
+            with (self.subTest(enabled=enabled, status=status, headers=headers),
+                  patch.object(release, "request", side_effect=failed) as read,
+                  patch.object(release, "sleep") as wait,
+                  self.assertRaisesRegex(ValueError, f"HTTP {status}")):
+                release.read_home_redirect(self.fixture_origin, enabled)
+            read.assert_called_once_with(url, 308)
+            wait.assert_not_called()
+
+    def test_alias_retry_still_fails_on_persistent_404_or_after_deadline(self):
+        url = self.fixture_origin + "/index.html"
+        with HTTPError(url, 404, "", self.cloudflare, None) as response:
+            failed = release.UnexpectedHTTPStatus(url, response)
+        accepted = ({"Location": "/"}, b"")
+        for responses, times, attempts, message in (
+            ([failed, failed], [100, 105], 2, "HTTP 404"),
+            ([failed, accepted], [100, 118], 1, "retry deadline exceeded"),
+            ([failed, accepted], [100, 105, 119], 2, "retry deadline exceeded"),
+        ):
+            with (self.subTest(times=times, message=message),
+                  patch.object(release, "request", side_effect=responses) as read,
+                  patch.object(release, "sleep") as wait,
+                  patch.object(release, "monotonic", side_effect=times),
+                  redirect_stderr(StringIO()),
+                  self.assertRaisesRegex(ValueError, message)):
+                release.read_home_redirect(self.fixture_origin, True)
+            self.assertEqual(read.call_count, attempts)
+            wait.assert_called_once_with(5)
+
+    def test_only_immutable_production_receives_the_alias_recheck(self):
+        deployment_id = "abcdabcd-0000-4000-8000-000000000002"
+        for target, branch in (("preview", "ci-12-1"), ("production", "main")):
+            args = SimpleNamespace(
+                target=target, branch=branch, deployment_environment=target,
+                prior_production=self.prior_id, deployment_id=deployment_id,
+                deployment_url=self.fixture_origin, commit="fixture", manifest_sha256="fixture",
+            )
+            deployed = {"id": deployment_id, "environment": target, "deployment_trigger": {
+                "metadata": {"branch": branch, "commit_hash": args.commit},
+            }}
+            active = deployment_id if target == "production" else self.prior_id
+            project = {**self.project, "canonical_deployment": {"id": active}}
+            files = {}
+            with (self.subTest(target=target),
+                  patch.object(release, "pages_api", side_effect=[deployed, project]),
+                  patch.object(release, "check_served") as check):
+                release.verify_deployment(args, files)
+
+            expected = [call(self.fixture_origin, files, production=False,
+                             retry_initial_alias_404=target == "production")]
+            if target == "production":
+                expected.append(call(release.SITE, files, production=True))
+            self.assertEqual(check.call_args_list, expected)
+
     def test_served_version_requires_exact_bytes_and_off_cache_headers(self):
         common = {"CF-Ray": "fixture", "Server": "cloudflare",
                   "CDN-Cache-Control": "no-store", "CF-Cache-Status": "DYNAMIC",
@@ -129,3 +219,15 @@ class CloudflareReleaseTests(unittest.TestCase):
             data["create/index.html"] = b"older version"
             with self.assertRaisesRegex(ValueError, "Served bytes differ"):
                 release.check_served(release.SITE, inventory, production=True)
+
+        url = self.fixture_origin + "/index.html"
+        with HTTPError(url, 404, "", self.cloudflare, None) as response:
+            failed = release.UnexpectedHTTPStatus(url, response)
+        with (patch.object(release, "request",
+                           side_effect=[failed, ({**common, "Location": "/wrong"}, b"")]) as read,
+              patch.object(release, "sleep"),
+              redirect_stderr(StringIO()),
+              self.assertRaisesRegex(ValueError, "Unexpected Home alias redirect")):
+            release.check_served(self.fixture_origin, inventory, production=False,
+                                 retry_initial_alias_404=True)
+        self.assertEqual(read.call_count, 2)

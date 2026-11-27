@@ -1,97 +1,70 @@
-# Optional measurement migration — local candidate, 2026-11-03
+# Home measurement and private exclusion
 
-The operator's current direction is no consent prompt: collect only statistics
-that qualify without assumed consent, accepting missing metrics or regions.
-This candidate removes the GA4 loader and consent panel. It does not activate
-Cloudflare collection. Production remains on the previously released source
-until a separately approved publication and deployment.
+The November 24 combined candidate uses the retained November 18 release tree.
+It removes the reviewed public measurement controls and preserves the browser
+exclusion key. Both local delivery artifacts default to collection OFF.
 
-## Current candidate behavior
+## Current behavior
 
-Every build emits `enabled: false`, `siteToken: null`, `production: false`.
-This includes main production builds with the old GA4 variables still set,
-ordinary CI, PRs, forks, previews, local and subpath builds. The old workflow
-activation step is removed locally; no live repository variable is changed.
-There is no vendor script installer or custom collector/proxy in this candidate.
-Configuration alone cannot enable it. The source-owned qualification boundary
-is false and cannot be replaced by a browser preference or an environment flag.
+The ordinary static GitHub build is collector-free and always emits disabled,
+unset, nonproduction analytics config. It contains no public measurement UI,
+replacement settings link, analytics JavaScript/CSS or vendor script. Environment
+flags and legacy Allow values cannot enable it. Only private source helpers remain.
 
-A closed Privacy disclosure in the footer explains measurement is off and offers
-browser exclusion. It never opens automatically or asks for consent. It works
-as information without JavaScript; exclusion actions require functional storage.
-The existing `agentart.analytics.excluded.v1` key retains its semantics: `1`
-excludes and `0` removes exclusion. Missing is not excluded; other values and
-unreadable storage fail closed. Only explicit button actions write this key,
-with readback/error reporting. Removing exclusion still cannot start collection.
-Old Allow/Reject preferences are ignored, not translated into permission.
-No visitor identifier, storage probe or new cookie is written. Old preferences,
-existing cookies, saved works, authentication, reading state and provider history
-are preserved; the removed loader no longer reads or renews analytics cookies.
-Other already-open documents may still run their previously loaded release.
+A separate Pages-only packager adds trusted country delivery and the new exact
+Home native installer, with checked-in/runtime defaults OFF and no token. A
+versioned Home policy contract replaces the former blanket false switches; it
+is not native qualification. Country eligibility alone cannot collect. The installer preserves exact private exclusion,
+automation/referrer guards and narrows measurement to `https://agentart.work/`
+only; historical 13 paths are not activated. No SDK was downloaded/executed.
+See [delivery design and limitations](../delivery/cloudflare-pages/README.md).
 
-## Proposed scope and unresolved gates
+The exact `agentart.analytics.excluded.v1` key retains semantics: `1` excludes;
+`0` removes explicit exclusion; missing is not an explicit exclusion; malformed
+or unreadable state closes collection. There are no initialization writes,
+migrations, resets, cookies or identifiers. Functional state and old preferences
+remain untouched. Removing an exclusion cannot bypass runtime config/policy, country,
+URL, browser or referrer gates. No public preference binding remains.
 
-`REVIEWED_PATHS` is a finite candidate list of existing Home, About, Agent Art,
-Protocol, Works, Blog and seven historical study URLs. It does not expand with
-the article catalogue. These are actual paths, not substituted GA4 labels.
-Queries, fragments (including empty delimiters), credentials, unlisted paths,
-encoded aliases, previews, local origins, downloads and Ask your Agent are off.
-Known automation and explicit exclusion are checked before possible collection;
-absence of an automation hint is not proof of a human visitor. The candidate
-referrer guard accepts only empty or exact safe same-origin referrers. External
-and unknown/sensitive referrers remain excluded, including external origins.
-These offline-tested preconditions do not themselves authorize a beacon.
+## Private OPS preference procedure
 
-Two blockers prevent any installation:
+This procedure is for a separately instructed operator action, not a new public
+UI or authorization to change production storage during this cleanup.
 
-1. **Regional manual mode:** agentart.work remains DNS-only on GitHub Pages.
-   Cloudflare automatic zone injection rules and `lite=true` do not establish
-   regional restrictions for arbitrary manual beacons. The exact supported
-   manual regional behavior must be qualified before collection. Do not infer
-   residence from receiving data centers or use report filters as collection
-   exclusions. No geolocation service, hosting move or paid plan is proposed.
-2. **Navigation and stopping:** the site has static document navigation but also
-   fragments, history restoration and client components. A native beacon sees
-   actual URLs/referrers and may install unload/history handlers. Removing a
-   script does not prove those handlers stopped. In-document hash/history changes,
-   cross-tab exclusion and later sensitive transitions need a supported stop or
-   safe document-boundary design. Until qualified, even public routes stay off.
+1. Use the intended **regular Google Chrome** profile at the exact origin
+   `https://agentart.work`. Another profile, device, port or localhost origin has
+   independent storage. Preserve unsaved work before any reload.
+2. In Chrome DevTools → Application → Local Storage, select that exact origin.
+   Read and record only `agentart.analytics.excluded.v1` and its exact current
+   value (or missing). Do not clear site data, cookies or other preferences.
+3. Only when separately instructed, edit that exact value to `1` to exclude, or
+   `0` to remove explicit exclusion. Missing need not be initialized; malformed
+   and unreadable values remain closed until an explicit action resolves them.
+4. Read back the same key/value. On denied/unreadable storage or a mismatched
+   readback, stop and report failure; do not assume the requested value persisted.
+5. After preserving work, explicitly reload/open a fresh document in that profile.
+   The static recovery has no collector, automatic reload or cross-tab analytics
+   listener. An older open document may retain its previously loaded release.
+   Changing a preference cannot prove its native handlers or final sends stopped.
 
-## Future production requirements and approval boundary
+No live preference value is read or written by local checks. A localhost OPS
+page cannot edit another origin's localStorage; this procedure uses existing
+origin-specific browser controls, not a promised cross-origin dashboard toggle.
+Private exclusion changes do not override OFF, regional, browser, path, automation
+or referrer safeguards. No GA4, token, backend or geo-IP service is added.
 
-OPS must qualify the exact manual site registration on the retained Gallery
-account, public site tag, supported restricted regional mode, actual URL/referrer
-handling, navigation/exclusion stopping and absence of competing automatic
-injection. Keep GitHub Pages and DNS unchanged. No Cloudflare edge request or
-bandwidth measurement is claimed for this DNS-only site.
 
-After those gates, a separately reviewed source change may add **one site-owned
-manual vendor loader** with the exact HTTPS origin, explicit production-only
-build context (repository, main ref, existing workflow and approved event),
-public site configuration and all browser/path/referrer gates. Neither a valid
-tag nor a production flag alone is sufficient. Use the native beacon only;
-no custom collector, proxy or client identity. The public tag is not the private
-OPS reporting credential. Reporting tokens and account credentials never belong
-in frontend source, HTML, configuration, logs or browser storage.
+## Unqualified behavior and later stages
 
-This preparation authorizes no commit, push, merge, provider setting, staging,
-deployment, live vendor test or notification. Next: OPS reviews this local
-candidate and the blockers, then obtains separate qualification/publication
-approval. A removal-only release with collection off is a possible separate
-operator decision; it is not deployed by this preparation.
+Offline policy and artifact checks establish the default OFF behavior. The
+synthetic same-document fixture from November 18 disclosed a private test path
+in both `location` and `inp.path`; that failure remains open. Removing the
+installer element does not cancel native handlers or queued sends. The remaining
+browser checks cover initial URL exclusions, an already eligible Home after a
+public fragment change, and genuine Back/Forward restoration.
 
-## Checks, evidence and recovery
-
-Run the existing Node tests, Python tests, repository checker, build and site
-checker. The tests cover exact routes/referrers, exclusion persistence/failures,
-legacy Allow isolation, automation and configuration attempts to enable the
-unqualified collector. Artifact checks reject consent UI and unconditional
-vendor resources. They do not qualify Cloudflare runtime or legal eligibility.
-No browser collection test or live analytics send is part of this candidate.
-
-Rollback source is current main `c0c912667918bd41ec63243ac406a55887bb1111`,
-including its GA4 implementation. No change has been deployed. Discarding the
-local candidate restores that source; any future production rollback needs its
-own approval and a rebuilt/deployed artifact. Existing public GA4 variables and
-provider history are unchanged. Source history preserves the earlier consent
-implementation and its evidence without treating it as the new design.
+Keep the exact collector-free GitHub artifact separate from the Pages package.
+The Pages no-store and alias configuration applies only to Home and its alias.
+For policy inputs, packaging and release limits, see the
+[Pages delivery notes](../delivery/cloudflare-pages/README.md). Native receiver,
+processed reporting, provider eligibility and recovery remain separate checks.

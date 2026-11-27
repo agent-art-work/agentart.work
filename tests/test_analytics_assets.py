@@ -1,6 +1,5 @@
 """Integrity and fail-closed generated analytics checks, entirely offline."""
 
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -21,21 +20,9 @@ class AnalyticsAssetChecks(unittest.TestCase):
         for folder in [self.root / "site/assets", self.output / "assets"]:
             folder.mkdir(parents=True)
         self.write("site/analytics.json", '{"enabled":false,"siteToken":null}')
-        core, ui, css = "export const disabled = true;\n", "void disabled;\n", "dialog{color:inherit}\n"
-        self.write("site/assets/analytics-core.mjs", core)
-        self.write("site/assets/analytics-ui.mjs", "import { createAnalytics } from './analytics-core.mjs';\n" + ui)
-        self.write("site/assets/analytics.css", css)
-        self.names = []
-        for content, suffix in [(core + "\n" + ui, "mjs"), (css, "css")]:
-            name = f'assets/analytics.{hashlib.sha256(content.encode()).hexdigest()}.{suffix}'
-            self.names.append(name)
-            self.write("_site/" + name, content)
-        self.html = ('<footer class="site-footer"></footer><div id="site-privacy"></div>'
-                     '<button data-analytics-action="exclude"></button>'
-                     '<button data-analytics-action="include"></button>'
+        self.html = ('<footer class="site-footer"></footer>'
                      '<script type="application/json" id="analytics-config">'
-                     '{"enabled":false,"siteToken":null,"production":false}</script>'
-                     f'<script src="/{self.names[0]}"></script><link href="/{self.names[1]}">')
+                     '{"enabled":false,"siteToken":null,"production":false}</script>')
         self.write("_site/index.html", self.html)
 
     def write(self, file, text):
@@ -55,9 +42,9 @@ class AnalyticsAssetChecks(unittest.TestCase):
     def test_disabled_fixture_passes(self):
         self.assertEqual(self.errors(), [])
 
-    def test_changed_or_missing_module_rejected(self):
-        self.write("_site/" + self.names[0], "changed")
-        self.assertTrue(any("changed analytics asset" in error for error in self.errors()))
+    def test_public_helper_or_handler_rejected(self):
+        self.write("_site/assets/analytics-core.mjs", "export const excluded = false;")
+        self.assertTrue(any("public analytics asset" in error for error in self.errors()))
 
     def test_unexpected_enablement_rejected(self):
         self.write("_site/index.html", self.html.replace('"enabled":false', '"enabled":true'))
@@ -67,9 +54,15 @@ class AnalyticsAssetChecks(unittest.TestCase):
         self.write("_site/index.html", self.html + '<script src="https://www.googletagmanager.com/gtag/js"></script>')
         self.assertTrue(any("unconditional vendor resource" in error for error in self.errors()))
 
-    def test_refusal_control_required(self):
-        self.write("_site/index.html", self.html.replace('data-analytics-action="exclude"', 'data-analytics-action="other"'))
-        self.assertTrue(any("missing privacy control" in error for error in self.errors()))
+    def test_public_controls_and_replacement_binding_rejected(self):
+        for control in ['<details id="site-privacy"></details>',
+                        '<button data-analytics-action="exclude"></button>',
+                        '<button data-analytics-action="include"></button>',
+                        '<a href="#site-privacy">Privacy</a>',
+                        '<script src="/assets/analytics.any.mjs"></script>']:
+            with self.subTest(control=control):
+                self.write("_site/index.html", self.html + control)
+                self.assertTrue(self.errors())
 
     def test_production_hints_cannot_activate_unqualified_collection(self):
         self.assertEqual(self.errors(self.production_env()), [])
@@ -82,4 +75,4 @@ class AnalyticsAssetChecks(unittest.TestCase):
 
     def test_obsolete_notice_rejected(self):
         self.write("_site/index.html", self.html + '<aside id="analytics-notice"></aside>')
-        self.assertTrue(any("obsolete consent UI" in e for e in self.errors()))
+        self.assertTrue(any("public measurement control" in e for e in self.errors()))

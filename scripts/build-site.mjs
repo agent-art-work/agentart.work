@@ -11,7 +11,8 @@ import { renderStyleDemo } from './style-demo.mjs';
 import { renderIconConcepts } from './icon-demo.mjs';
 import { copyRetainedSdk } from './retained-sdk.mjs';
 import { writeReadingAssets } from './reading-assets.mjs';
-import { analyticsBuildConfig, writeAnalyticsAssets } from './analytics-assets.mjs';
+import { writeCreationAssets } from './create-assets.mjs';
+import { analyticsBuildConfig, omitPublicAnalyticsAssets } from './analytics-assets.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sdkRoot = path.dirname(createRequire(import.meta.url).resolve('@agent-art/protocol'));
@@ -109,6 +110,12 @@ function render(source) {
     }
   }
   let body = md.renderer.render(tokens, md.options, {});
+  if (source === 'docs/CREATE.md') {
+    const fallback = /<p>(<a href="[^"]+">Read the alpha.3 guides<\/a>)<\/p>/;
+    if (!fallback.test(body)) throw new Error('Create must retain its alpha.3 guide fallback.');
+    body = body.replace(fallback,
+      '<div class="create-agent-action"><div class="site-agent-reading"><div id="create-agent" aria-label="Create with your Agent"></div></div><p id="create-agent-fallback">$1</p></div>');
+  }
   if (source === 'docs/AGENT_ART_WORK.md') {
     body = '<span id="agent-art-work"></span>' + body;
     body = body.replace('<h2 id="our-logo">', '<span id="an-escape-in-the-astra"></span><h2 id="our-logo">');
@@ -124,11 +131,21 @@ function render(source) {
 
 function shell(title, content, description = homeDescription, source = null, stylesheets = [], section = '') {
   const home = section === 'home';
-  const active = section || (source?.startsWith('projects/') ? 'blog' : source === 'docs/WORKS.md' ? 'works' : source === 'docs/AGENT_ART.md' ? 'agent-art' : source === 'docs/PROTOCOL.md' ? 'protocol' : source === 'docs/ASK_YOUR_AGENT.md' ? 'ask-your-agent' : '');
-  const navigation = [['agent-art', 'Agent Art'], ['protocol', 'Protocol'], ['works', 'Works']]
-    .map(([route, label]) => `<a href="${url(`${route}/index.html`)}"${active === route ? ' aria-current="page"' : ''}>${label}</a>`).join('');
+  const active = section || (source?.startsWith('projects/') ? 'blog' : source === 'docs/WORKS.md' ? 'works' : source === 'docs/AGENT_ART.md' ? 'agent-art' : source === 'docs/PROTOCOL.md' ? 'protocol' : source === 'docs/CREATE.md' ? 'create' : source === 'docs/ASK_YOUR_AGENT.md' ? 'ask-your-agent' : '');
+  const siteLinks = [
+    ...[['agent-art', 'Agent Art'], ['protocol', 'Protocol'], ['create', 'Create'],
+      ['works', 'Works'], ['blog', 'Blog'], ['about', 'About'], ['ask-your-agent', 'Ask your Agent']]
+      .map(([key, label]) => ({ key, label, href: url(`${key}/index.html`) })),
+    { key: 'github', label: 'GitHub', href: 'https://github.com/agent-art-work' },
+    { key: 'x', label: 'X', href: 'https://x.com/AgentArt_work', hint: '@AgentArt_work on X' },
+  ];
+  const topMenu = new Set(['agent-art', 'protocol', 'create', 'works', 'github', 'x']);
+  const link = ({ key, label, href, hint }) => `<a href="${href}"${active === key ? ' aria-current="page"' : ''}${hint ? ` title="${esc(hint)}" aria-label="${esc(hint)}"` : ''}>${esc(label)}</a>`;
+  const navigation = siteLinks.filter(item => topMenu.has(item.key)).map(link).join('');
+  // Footer navigation complements the top menu instead of repeating it.
+  const footerNavigation = siteLinks.filter(item => !topMenu.has(item.key)).map(link).join('');
   const homeLinks = position => `<section class="home-links" aria-label="${position === 'top' ? 'Top navigation' : 'Bottom navigation'}">
-<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation}<a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a></nav>
+<nav class="home-navigation${position === 'top' ? ' site-nav' : ''}" aria-label="${position === 'top' ? 'Top' : 'Bottom'} site links">${navigation}</nav>
 </section>`;
   return `<!doctype html>
 <html lang="en" data-font="pt-mono" data-weight="400" data-texture="dots"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -138,16 +155,15 @@ function shell(title, content, description = homeDescription, source = null, sty
 ${source ? `<link rel="alternate" type="application/json" title="Complete document" href="${url(`documents/${documentId(source)}.json`)}">` : ''}
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#ffffff"><link rel="icon" href="${url('assets/logo.svg?v=off-grid-2px-1')}" type="image/svg+xml" sizes="any">
 <script src="${url('assets/theme.js')}"></script>
-<link rel="stylesheet" href="${url('assets/site.css')}"><link rel="stylesheet" href="${url(analyticsAssets.css)}">${stylesheets.map(file => `<link rel="stylesheet" href="${url(file)}">`).join('')}</head><body${home ? ' class="manifesto-home"' : ''}>
+<link rel="stylesheet" href="${url('assets/site.css')}">${stylesheets.map(file => `<link rel="stylesheet" href="${url(file)}">`).join('')}</head><body${home ? ' class="manifesto-home"' : ''}>
 <script src="${url('assets/masthead.js')}" defer></script>${home ? `<script src="${url('assets/home-intro.js')}" defer></script>` : ''}<a class="skip-link" href="#main">Skip to content</a>
 <header class="global-top ${home ? 'manifesto-top' : 'site-header'}"><a class="brand" href="${url('index.html')}" aria-label="Agent Art Work home"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span></a>${homeLinks('top')}</header>
 <main id="main">${content}</main>
 <section class="site-reading" id="reading-heading" aria-label="Ask your Agent"><div class="site-agent-reading"><div id="ask-your-agent"></div></div>${promptDisclosure}</section>
-<footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><a class="footer-brand" href="https://github.com/agent-art-work"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></a><p>Art, tools and research with Agents.</p></div>
+<footer class="site-footer"${home ? ' id="articles"' : ''}><div class="footer-heading"><span class="footer-brand"><span class="logo-slot"><span class="logo-field"><img src="${url('assets/logo.svg?v=off-grid-2px-1')}" width="40" height="40" alt=""></span></span><span class="footer-brand-name">Agent Art Work</span></span><p>Art, tools and research with Agents.</p></div>
 <nav class="footer-links" aria-label="Footer links">
-<a href="${url('agent-art/index.html')}">Agent Art</a><a href="${url('protocol/index.html')}">Protocol</a><a href="${url('create/index.html')}">Create</a><a href="${url('works/index.html')}">Works</a><a href="${url('blog/index.html')}">Blog</a><a href="${url('about/index.html')}">About</a><a href="${url('ask-your-agent/index.html')}">Ask your Agent</a><a href="https://github.com/agent-art-work">GitHub</a><a href="https://x.com/AgentArt_work" title="@AgentArt_work on X" aria-label="@AgentArt_work on X">X</a>
-${analyticsMarkup}
-</nav></footer><script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script><script type="module" src="${url(analyticsAssets.script)}"></script>${readingScripts}</body></html>\n`;
+${footerNavigation}
+</nav></footer><script type="application/json" id="analytics-config">${JSON.stringify(analyticsConfig)}</script>${readingScripts}${source === 'docs/CREATE.md' ? `<script type="module" src="${url(creationAssets.adapterPath)}"></script>` : ''}</body></html>\n`;
 }
 
 function write(file, content) {
@@ -169,7 +185,7 @@ if (!agentPrompt) throw new Error('The access guide must contain the homepage ag
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 cpSync(path.join(root, 'site/assets'), path.join(output, 'assets'), { recursive: true });
-const analyticsAssets = writeAnalyticsAssets(root, output);
+omitPublicAnalyticsAssets(output);
 for (const file of ['index.mjs', 'clients.mjs', 'reading.mjs', 'reading-ui.mjs', 'reading.css', 'LICENSE']) {
   mkdirSync(path.join(output, sdkAssetPath), { recursive: true });
   cpSync(path.join(sdkRoot, file), path.join(output, sdkAssetPath, file));
@@ -187,13 +203,7 @@ const readingWork = defineWork({
 });
 const workModule = `export default ${JSON.stringify(readingWork).replace(/</g, '\\u003c')};\n`;
 const readingAssets = writeReadingAssets(root, output, workModule, '0.1.5-alpha.2');
-const analyticsMarkup = `<details id="site-privacy" class="site-privacy"><summary>Privacy</summary><div class="privacy-information">
-<p>Optional audience measurement is off. No analytics script is loaded. Reading and Ask your Agent work without it.</p>
-<p>You can exclude this browser from future optional measurement. This saves only an exclusion preference, not a visitor identifier. Clearing site storage removes it. Existing reading state is unchanged.</p>
-<p>Removing exclusion does not turn measurement on. Previously collected information is not deleted by this choice.</p>
-<p id="analytics-status" role="status" aria-live="polite">Optional measurement is off.</p>
-<button type="button" data-analytics-action="exclude" hidden>Exclude this browser</button><button type="button" data-analytics-action="include" hidden>Remove browser exclusion</button>
-</div></details>`;
+const creationAssets = writeCreationAssets(root, output);
 write('.nojekyll', '');
 write('agent-index.json', agentDocuments.indexBytes);
 for (const [id, bytes] of agentDocuments.documents) write(`documents/${id}.json`, bytes);
@@ -225,7 +235,7 @@ for (const [source, route] of routes) {
   const { title, body, headings } = reading.get(source);
   const study = studies.find(s => s.source === source);
   const definition = source === 'docs/AGENT_ART.md';
-  const label = study ? `${study.project} / ${study.status}` : definition ? 'The definition & its implications' : source === 'GUIDANCE.md' ? 'Optional research guidance' : source === 'docs/PROTOCOL.md' ? 'Protocol / Overview' : source === 'docs/ASK_YOUR_AGENT.md' ? 'A component of Agent Art Protocol' : source.startsWith('templates/') ? 'Optional research template' : source.startsWith('projects/') ? 'Historical research collection' : source === 'findings/REGISTER.md' ? 'Provisional research findings' : source === 'research/README.md' ? 'Inherited research sources' : source === 'CONTRIBUTING.md' ? 'Blog / Publishing' : 'Agent Art Work';
+  const label = study ? `${study.project} / ${study.status}` : definition ? 'The definition & its implications' : source === 'GUIDANCE.md' ? 'Optional research guidance' : source === 'docs/PROTOCOL.md' ? 'Protocol / Overview' : source === 'docs/CREATE.md' ? 'Create' : source === 'docs/ASK_YOUR_AGENT.md' ? 'A component of Agent Art Protocol' : source.startsWith('templates/') ? 'Optional research template' : source.startsWith('projects/') ? 'Historical research collection' : source === 'findings/REGISTER.md' ? 'Provisional research findings' : source === 'research/README.md' ? 'Inherited research sources' : source === 'CONTRIBUTING.md' ? 'Blog / Publishing' : 'Agent Art Work';
   const recordContext = source.startsWith('projects/') && source.endsWith('/README.md')
     ? '<p class="evidence-banner">Retained Lab research context. Observations and next steps describe their recorded period; they are not current product status or instructions to resume work.</p>'
     : '';
@@ -245,7 +255,7 @@ for (const [source, route] of routes) {
     write(route, shell(title, `<article class="reading-page definition-page"><header class="reading-header"><p class="eyebrow">${esc(label)}</p><h1 id="${headings[0]?.id ?? 'title'}">${esc(title)}</h1></header><details class="toc definition-contents"><summary>In this definition<span class="disclosure-icon" aria-hidden="true"></span></summary><nav aria-label="In this definition"><ol>${toc}</ol></nav></details><div class="prose">${body}</div>${sourceLinks}</article>`, description, source));
     continue;
   }
-  write(route, shell(title, `<article class="reading-page${study ? ' blog-article' : overview ? ' overview-page' : ''}">${study ? `<a class="article-back" href="${url('blog/index.html')}">← All articles</a>` : ''}<header class="reading-header">${study ? `<p class="article-meta"><span>Record date: <time datetime="${study.date}">${date(study.date)}</time></span><span>${esc(study.project)}</span><span>${esc(study.status)}</span></p>` : `<p class="eyebrow">${esc(label)}</p>`}<h1 id="${headings[0]?.id ?? 'title'}">${esc(title)}</h1>${study ? `<p>${esc(study.summary)}</p><p class="evidence-banner">Evidence: ${esc(study.evidence)}. See the record below for access and limitations.</p>` : ''}${recordContext}${overview ? '' : sourceLinks}</header>${source === 'docs/ASK_YOUR_AGENT.md' ? `<p class="overview-action"><a href="#reading-heading">Try it on this site</a></p>` : ''}<div class="reading-layout">${overview ? '' : `<aside class="toc"><p class="label">In this record</p><nav aria-label="Table of contents"><ol>${toc}</ol></nav></aside>`}<div class="prose">${body}</div>${overview ? sourceLinks : ''}</div>${study ? articleNavigation(study) : ''}</article>`, study?.summary, source));
+  write(route, shell(title, `<article class="reading-page${study ? ' blog-article' : overview ? ` overview-page${source === 'docs/CREATE.md' ? ' create-page' : ''}` : ''}">${study ? `<a class="article-back" href="${url('blog/index.html')}">← All articles</a>` : ''}<header class="reading-header">${study ? `<p class="article-meta"><span>Record date: <time datetime="${study.date}">${date(study.date)}</time></span><span>${esc(study.project)}</span><span>${esc(study.status)}</span></p>` : `<p class="eyebrow">${esc(label)}</p>`}<h1 id="${headings[0]?.id ?? 'title'}">${esc(title)}</h1>${study ? `<p>${esc(study.summary)}</p><p class="evidence-banner">Evidence: ${esc(study.evidence)}. See the record below for access and limitations.</p>` : ''}${recordContext}${overview ? '' : sourceLinks}</header>${source === 'docs/ASK_YOUR_AGENT.md' ? `<p class="overview-action"><a href="#reading-heading">Try it on this site</a></p>` : ''}<div class="reading-layout">${overview ? '' : `<aside class="toc"><p class="label">In this record</p><nav aria-label="Table of contents"><ol>${toc}</ol></nav></aside>`}<div class="prose">${body}</div>${overview ? sourceLinks : ''}</div>${study ? articleNavigation(study) : ''}</article>`, study?.summary, source));
 }
 
 write('404.html', shell('Page not found', heading('404 / A missing page', 'This page is not here.', 'Use the site navigation or return home.') + `<p><a class="button" href="${url('index.html')}">Go to home</a></p>`));

@@ -149,6 +149,77 @@ the respective maintainers' release authority.
 
 ## Current position
 
+- 2026-11-26 website maintenance, **Create alpha.3 Cloudflare Preview**.
+  The operator approved a Preview-only release from PR #23 with collection
+  OFF. The migration branch can run Preview before merging. Main OPS owns
+  provisioning the environment's Pages credential. The website maintainer
+  owns the Actions run and its immutable Preview readback. Production and
+  the GitHub Pages fallback remain held. Record the Preview deployment ID
+  and artifact manifest when verification completes.
+
+- 2026-11-26 website maintenance, **Cloudflare Pages CI/CD migration**.
+  The Actions workflow builds the collection-OFF Pages artifact, verifies
+  its manifest in each deployment job, and uses the same files for Preview
+  and Production in a promotion run. Preview and Production have separate
+  GitHub environments. Production requires a verified Preview and the
+  expected active deployment ID. The protected environments and account
+  selector are configured. Deployment credentials and the Cloudflare
+  release remain pending. The GitHub Pages workflow still supplies fallback
+  until OPS accepts full OFF recovery.
+  See the [CI/CD setup and release procedure](delivery/cloudflare-pages/RELEASE.md#enable-github-actions-delivery).
+
+- 2026-11-26 website maintenance, **Cloudflare release transition**. GitHub is
+  the source repository. Use Cloudflare Pages for staging and canonical
+  Production, with one build from a reviewed commit and the same archive in
+  both environments. The existing GitHub Pages fallback stays in service
+  until OPS verifies release and settings recovery on Cloudflare. The
+  November 26 version-only rehearsal restored the original OFF release
+  (`35ec70af`) and verified the canonical Home pair in about 2m 32s with
+  settings unchanged. Actual restoration of the collection-OFF settings
+  and the combined recovery time remain unverified.
+  The Create and Artwork SDK alpha.3 archive is a separate candidate whose
+  Production release has no verified submission. Its next release step is
+  to pin a reviewed source commit and qualify the exact archive on Cloudflare
+  staging under its own approval. See the
+  [release and recovery runbook](delivery/cloudflare-pages/RELEASE.md).
+  Next on the recovery track: OPS review of the isolated Preview settings
+  rehearsal. Collection stays OFF. This handoff authorizes local preparation.
+
+- 2026-11-25 website maintenance, **Create and Artwork SDK alpha.3 local
+  release candidate**. Create follows Protocol in the top menu. Footer
+  navigation lists Blog, About and Ask your Agent. Create uses the shared
+  site typography and a dedicated creation invitation that points to the
+  separate tagged macOS and Linux alpha.3 guides. Reading remains on
+  `0.1.5-alpha.2`. This candidate builds on the retained 2026-11-25
+  production Pages baseline with collection OFF, private browser exclusion
+  and the distinct static recovery output. Offline checks substitute pinned
+  Work data for SDK execution. Review the local Create page before any release
+  decision. Browser and SDK execution, publication and deployment are held.
+  The local receipt and artifact comparisons are in ignored
+  `local/qa/create-alpha3-off-20261125/`.
+
+- 2026-11-24 website maintenance, **combined M7.2 default-OFF local candidate**:
+  isolated `codex/m72-combined-off-local` at `e39143e`, tree `ceb40bd`, equivalent
+  to retained November 18 release `47c29fd`. Current remote freshness remains
+  unverified. The reviewed public measurement cleanup and saved `home-native-v1`
+  installer, country Worker and packager are combined. The private exclusion
+  key and its semantics, unrelated page content and normal Home/Create links
+  are preserved. `_site/` is the 95-file collector-free GitHub recovery artifact.
+  `local/cloudflare-pages/_site/` is the separate 99-file Pages candidate; both
+  default OFF. The package guard rejects the old release with legacy controls.
+  Only approved measurement markup and two assets are removed from the static
+  delivery; the Pages package changes only Home and adds four delivery files.
+  Source and export checks, 48 Node and 78 Python tests, and eight synthetic
+  checks over exact packaged Worker bytes passed. The build used the pinned
+  retained reading Work as data and reproduced all 97 baseline files first.
+  Candidate diff, exact manifests and workload are recorded in ignored
+  `local/qa/m72-combined-off-20261124/`. The November 18 private-path finding in
+  `location` and `inp.path` remains open. November 24 Home-to-Create evidence
+  stays scoped to the retained release. OPS can review the handback before
+  requesting initial URL, eligible fragment and genuine restoration checks.
+  Collection OFF. Browser/SDK execution, downloads, publication, CI,
+  deployment, provider access and activation remain held.
+
 - 2026-11-18 website maintenance, **docs-only release authorized and prepared**:
   the operator approved publishing the reviewed artwork-alpha.1 website docs
   after production-build verification. The isolated docs branch was rebased

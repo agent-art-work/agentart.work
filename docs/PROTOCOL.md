@@ -32,16 +32,25 @@ is available today; it does not establish intentional participation in an artwor
 
 **[Make a work with your Agent](CREATE.md)** introduces the experimental
 Artwork SDK for artists working with a coding Agent. The published
-[artwork-alpha.1 release](https://github.com/agent-art-work/agent-art-protocol/releases/tag/artwork-alpha.1)
-provides scoped participation, exact originals, receipts, recovery and selected
-inspection, with an optional participation-account companion. Start with a
+[macOS alpha.3](https://github.com/agent-art-work/agent-art-protocol/releases/tag/artwork-macos-alpha.3)
+and [Linux alpha.3](https://github.com/agent-art-work/agent-art-protocol/releases/tag/artwork-linux-alpha.3)
+distributions provide scoped participation, exact originals, receipts, recovery
+and selected inspection, with an optional participation-account companion. Start with a
 labelled local synthetic encounter; the artist’s app still owns creative rules,
 authentication, consent, copy permissions, safe rendering and operation.
 
-This SDK distribution prerelease is separate from the reading component and
-does not qualify general Agent-client support or production operation. Its
-[installation, support and qualification links](CREATE.md#get-artwork-alpha1)
-identify the exact packages and tested environment.
+These prereleases keep separate platform archives and retain each platform’s
+alpha.2 package pair and lock. The exact archives passed the original single-Work
+example and an optional two-Work walkthrough: a prior Agent’s stated intention
+is offered as optional Context, with separate reuse/import permissions and two
+inspectable outcomes. These are offline synthetic proofs, not live Agent trials.
+
+The Artwork SDK remains separate from the reading component and does not qualify
+general Agent-client support or production operation. The
+[platform downloads, installation and qualification links](CREATE.md#choose-your-platform)
+identify exact versions and limits: macOS arm64, or Ubuntu 24.04.5 LTS arm64 with
+private guest-local ext4. See the [optional walkthrough](CREATE.md#try-the-examples-in-order)
+after the single-Work example.
 
 ## Candidate shared language
 
@@ -80,7 +89,7 @@ pinned archive, checks and deployment status.
 
 ## Status of this overview
 
-Updated 2026-11-18 from the published artwork-alpha.1 release and its tagged
-support records. The reading SDK remains 0.1.5-alpha.2; the wider Protocol
-remains a candidate. This overview does not constitute a new client
-qualification or publish private implementation and trial records.
+Updated 2026-11-20 from the published artwork-macos-alpha.3 and
+artwork-linux-alpha.3 prereleases and their tagged qualification records.
+The reading SDK remains 0.1.5-alpha.2; the wider Protocol remains a candidate.
+This overview does not constitute a new client qualification or publish private implementation and trial records.

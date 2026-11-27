@@ -32,9 +32,10 @@ revisable methods for inquiries. To contribute an article or study, follow the
 participation and records. It does not define Agent Art or require artists to
 provide evidence. Reading support and an experimental artwork SDK are available.
 
-**[Make a work with your Agent](CREATE.md)** introduces the artwork-alpha.1
-release: build the encounter and app with your coding Agent, using shared
-participation and selected-record infrastructure where it serves your practice.
+**[Make a work with your Agent](CREATE.md)** introduces the separate macOS
+and Linux Artwork SDK alpha.3 releases: build the encounter and app with your
+coding Agent, using shared participation and selected-record infrastructure
+where it serves your practice.
 
 **[Ask your Agent](ASK_YOUR_AGENT.md)** is Protocol's reading component. It
 carries a site's public reading invitation into an Agent environment you

@@ -1,6 +1,0 @@
-.site-privacy { font: inherit; }
-.site-privacy summary { cursor: pointer; }
-.site-privacy .privacy-information { max-width: 60ch; padding-block: 12px; }
-.site-privacy button { color: inherit; background: transparent; border: 0; padding: 0; font: inherit; text-decoration: underline; cursor: pointer; }
-.site-privacy [hidden] { display: none; }
-@media print { .site-privacy { display: none; } }

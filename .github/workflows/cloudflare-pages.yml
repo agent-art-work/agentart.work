@@ -14,6 +14,9 @@ on:
       expected_production:
         description: Current Cloudflare Production deployment ID (required for promotion)
         type: string
+      expected_manifest_sha256:
+        description: Reviewed OFF artifact manifest SHA-256 (required for Production)
+        type: string
 
 permissions:
   contents: read
@@ -34,9 +37,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.target == 'production'
         env:
           EXPECTED_PRODUCTION: ${{ inputs.expected_production }}
+          EXPECTED_MANIFEST_SHA256: ${{ inputs.expected_manifest_sha256 }}
         run: |
           if [[ "$GITHUB_REF" != refs/heads/main || ! "$EXPECTED_PRODUCTION" =~ ^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$ ]]; then
             echo 'Production requires main and the current Production deployment ID.' >&2
+            exit 1
+          fi
+          if [[ ! "$EXPECTED_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+            echo 'Production requires the reviewed OFF manifest SHA-256 as 64 lowercase hexadecimal characters.' >&2
             exit 1
           fi
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -58,10 +66,21 @@ jobs:
           node scripts/build-cloudflare-pages.mjs
       - name: Pin the artifact
         id: pin
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+          EXPECTED_MANIFEST_SHA256: ${{ inputs.expected_manifest_sha256 }}
         run: |
           set -euo pipefail
           package=local/cloudflare-pages
           digest=$(sha256sum "$package/manifest.json" | cut -d ' ' -f 1)
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch && "$RELEASE_TARGET" == production ]]; then
+            printf 'Expected Production manifest: `%s`\n\nBuilt manifest: `%s`\n' "$EXPECTED_MANIFEST_SHA256" "$digest" \
+              | tee -a "$GITHUB_STEP_SUMMARY"
+            if [[ "$digest" != "$EXPECTED_MANIFEST_SHA256" ]]; then
+              echo 'Production manifest mismatch. Artifact upload stopped.' >&2
+              exit 1
+            fi
+          fi
           python3 -B scripts/check_cloudflare_release.py artifact "$package" "$digest"
           {
             echo "name=cloudflare-pages-off-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
@@ -97,6 +116,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'production' && github.ref == 'refs/heads/main'
     needs: [build, preview]
     uses: ./.github/workflows/cloudflare-pages-deploy.yml
+    secrets:
+      CLOUDFLARE_PAGES_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
     with:
       target: production
       branch: main

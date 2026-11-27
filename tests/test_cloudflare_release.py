@@ -85,6 +85,17 @@ class CloudflareReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "file set or file digest"):
                 release.verify_artifact(directory, digest)
 
+    def test_request_identifies_the_release_verifier(self):
+        with patch.object(release, "build_opener") as build_opener:
+            open_request = build_opener.return_value.open
+            response = open_request.return_value
+            response.status = 200
+            response.read.return_value = b"preview"
+            release.request("https://preview.example.test/create/")
+
+        request = open_request.call_args.args[0]
+        self.assertEqual(request.get_header("User-agent"), "AgentArtWork-ReleaseVerifier/1.0")
+
     def test_served_version_requires_exact_bytes_and_off_cache_headers(self):
         common = {"CF-Ray": "fixture", "Server": "cloudflare",
                   "CDN-Cache-Control": "no-store", "CF-Cache-Status": "DYNAMIC",

@@ -65,7 +65,10 @@ def verify_artifact(directory, expected_hash):
 
 
 def request(url, expected_status=200, token=None):
-    headers = {"Accept-Encoding": "identity"}
+    headers = {
+        "Accept-Encoding": "identity",
+        "User-Agent": "AgentArtWork-ReleaseVerifier/1.0",
+    }
     if token:
         headers["Authorization"] = f"Bearer {token}"
     opener = build_opener(NoRedirect())

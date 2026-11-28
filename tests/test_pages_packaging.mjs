@@ -10,11 +10,13 @@ const MARKER='<script type="application/json" id="home-country-config">{"country
 const HTML='<html><head></head><body><main>Fixture manifesto.</main><footer class="site-footer"></footer><script type="application/json" id="analytics-config">{"enabled":false,"siteToken":null,"production":false}</script></body></html>';
 function fixture(t){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'agentart-pages-fixture-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
- for(const folder of ['scripts','delivery/cloudflare-pages','site/assets','_site/assets','_site/documents','_site/about'])fs.mkdirSync(path.join(dir,folder),{recursive:true});
+ for(const folder of ['scripts','delivery/cloudflare-pages','site/assets','_site/assets','_site/documents','_site/about','_site/create'])fs.mkdirSync(path.join(dir,folder),{recursive:true});
  fs.writeFileSync(path.join(dir,'package.json'),'{"type":"module"}');
  for(const file of ['scripts/build-cloudflare-pages.mjs','delivery/cloudflare-pages/home-worker.mjs','delivery/cloudflare-pages/measurement.json','site/assets/analytics-home.mjs'])fs.copyFileSync(path.join(root,file),path.join(dir,file));
  const write=(file,body)=>fs.writeFileSync(path.join(dir,file),body);
  write('site/analytics.json','{"enabled":false,"siteToken":null}');write('_site/index.html',HTML);write('_site/about/index.html',HTML);write('_site/assets/fixture.mjs','// inert fixture\n');write('_site/documents/fixture.json','{"fixture":true}');
+ const createHtml = HTML.replace('Fixture manifesto.', '<code>@agent-art/artwork-sdk@0.0.0-mcp.1</code>');
+ write('_site/create/index.html', createHtml);
  const run=(env={})=>spawnSync(process.execPath,['scripts/build-cloudflare-pages.mjs'],{cwd:dir,encoding:'utf8',env:{PATH:process.env.PATH,SITE_BASE_PATH:'',...env}});
  return{dir,write,run,read:file=>fs.readFileSync(path.join(dir,file),'utf8')};
 }
@@ -22,9 +24,17 @@ test('Pages packaging changes only Home context and delivery and inert Home inst
  const f=fixture(t),p=f.run();assert.equal(p.status,0,p.stderr);
  assert.equal(f.read('_site/index.html'),HTML);
  assert.equal(f.read('local/cloudflare-pages/_site/index.html').replace(MARKER,'').replace(/<script type="application\/json" id="home-measurement-config">.*?<\/script>/,'').replace('<meta name="referrer" content="origin">','').replace(/<script type="module" src="\/assets\/analytics-home\.[a-f0-9]{64}\.mjs" referrerpolicy="origin"><\/script>/,''),HTML);
- for(const file of ['about/index.html','assets/fixture.mjs','documents/fixture.json'])assert.equal(f.read('local/cloudflare-pages/_site/'+file),f.read('_site/'+file));
+ for(const file of ['about/index.html','create/index.html','assets/fixture.mjs','documents/fixture.json'])assert.equal(f.read('local/cloudflare-pages/_site/'+file),f.read('_site/'+file));
  assert.deepEqual(JSON.parse(f.read('local/cloudflare-pages/_site/_routes.json')),{version:1,include:['/','/index.html'],exclude:[]});
- const headers=f.read('local/cloudflare-pages/_site/_headers');assert.equal((headers.match(/no-store/g)||[]).length,6);assert.equal(headers.includes('/*'),false);
+ const headers = f.read('local/cloudflare-pages/_site/_headers');
+ const homeHeaders = [
+  '  Cache-Control: private, no-store, no-transform',
+  '  CDN-Cache-Control: no-store',
+  '  Cloudflare-CDN-Cache-Control: no-store',
+ ].join('\n');
+ assert.equal(headers,
+  `/\n${homeHeaders}\n\n/index.html\n${homeHeaders}\n\n/create/\n  Cache-Control: public, max-age=0, must-revalidate, no-transform\n`);
+ assert.equal(fs.existsSync(path.join(f.dir, '_site/_headers')), false);
  assert.equal(f.read('local/cloudflare-pages/_site/_worker.js'),f.read('delivery/cloudflare-pages/home-worker.mjs'));
  const manifest=JSON.parse(f.read('local/cloudflare-pages/manifest.json'));assert.equal(manifest.collection,'OFF');assert.equal(manifest.networkRequests,0);assert.equal(Object.keys(manifest.files).length,Object.keys(manifest.source).length+4);
 });

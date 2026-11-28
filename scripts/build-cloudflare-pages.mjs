@@ -56,7 +56,9 @@ writeFileSync(path.join(output, '_worker.js'), worker);
 writeFileSync(path.join(output, 'assets', clientName), client);
 writeFileSync(path.join(output, '_routes.json'), JSON.stringify({ version: 1, include: ['/', '/index.html'], exclude: [] }, null, 2) + '\n');
 const noStore = ['Cache-Control: private, no-store, no-transform', 'CDN-Cache-Control: no-store', 'Cloudflare-CDN-Cache-Control: no-store'];
-writeFileSync(path.join(output, '_headers'), ['/', '/index.html'].map(route => route + '\n' + noStore.map(header => '  ' + header).join('\n')).join('\n\n') + '\n');
+const homeHeaders = ['/', '/index.html'].map(route => route + '\n' + noStore.map(header => '  ' + header).join('\n'));
+const createHeaders = '/create/\n  Cache-Control: public, max-age=0, must-revalidate, no-transform';
+writeFileSync(path.join(output, '_headers'), [...homeHeaders, createHeaders].join('\n\n') + '\n');
 const manifest = { schema: 'agentart.pages-off.local.v1', collection: 'OFF', networkRequests: 0,
   source: originals, files: Object.fromEntries(files(output).map(file => [file, digest(readFileSync(path.join(output, file)))])) };
 writeFileSync(path.join(parent, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');

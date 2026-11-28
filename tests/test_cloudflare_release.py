@@ -216,9 +216,41 @@ class CloudflareReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "cache status"):
                 release.check_served(release.SITE, inventory, production=True)
             common["CF-Cache-Status"] = "DYNAMIC"
-            data["create/index.html"] = b"older version"
-            with self.assertRaisesRegex(ValueError, "Served bytes differ"):
+
+        create_url = release.SITE + "/create/"
+        for cache_status, age, create_body in (
+            ("HIT", "60", b"older version"),
+            ("DYNAMIC", "", b"modified html"),
+        ):
+            def respond_with_mismatch(url, status):
+                if url == create_url:
+                    return {**common, "CF-Cache-Status": cache_status, "Age": age,
+                            "ETag": '"old"', "Content-Type": "text/html",
+                            "Set-Cookie": "private=fixture"}, create_body
+                return respond(url, status)
+
+            with (self.subTest(cache_status=cache_status),
+                  patch.object(release, "request", side_effect=respond_with_mismatch) as read,
+                  patch.object(release, "monotonic", side_effect=[100, 100.125]),
+                  self.assertRaisesRegex(ValueError, "Served bytes differ for /create/:") as failure):
                 release.check_served(release.SITE, inventory, production=True)
+            self.assertEqual(read.call_count, 5)
+            self.assertEqual(read.call_args, call(create_url, 200))
+            message = str(failure.exception)
+            evidence = json.loads(message.split(": ", 1)[1])
+            self.assertEqual(evidence["url"], create_url)
+            self.assertEqual(evidence["status"], 200)
+            self.assertRegex(evidence["observed_at"], r"\d{4}-\d\d-\d\dT.*\+00:00$")
+            self.assertEqual(evidence["elapsed_ms"], 125)
+            self.assertEqual(evidence["expected_sha256"], inventory["create/index.html"])
+            self.assertEqual(evidence["actual_sha256"], hashlib.sha256(create_body).hexdigest())
+            self.assertEqual(evidence["actual_bytes"], len(create_body))
+            self.assertEqual(evidence["headers"]["CF-Cache-Status"], cache_status)
+            self.assertEqual(evidence["headers"]["CF-Ray"], common["CF-Ray"])
+            self.assertEqual(evidence["headers"]["Age"], age)
+            self.assertEqual(evidence["headers"]["ETag"], '"old"')
+            self.assertNotIn("Set-Cookie", evidence["headers"])
+            self.assertNotIn(create_body.decode(), message)
 
         url = self.fixture_origin + "/index.html"
         with HTTPError(url, 404, "", self.cloudflare, None) as response:

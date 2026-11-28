@@ -184,10 +184,32 @@ def check_served(origin, files, production, *, retry_initial_alias_404=False):
             "Unexpected Home alias redirect")
     print("- `/index.html` returned the no-store Home redirect")
     for route, (file, status) in routes.items():
+        start = monotonic() if production and route == "/create/" else None
         headers, body = request(origin + route, status)
         require(headers.get("CF-Ray") and headers.get("Server", "").lower() == "cloudflare",
                 f"Missing Cloudflare provenance for {route}")
-        require(sha256(body).hexdigest() == files[file], f"Served bytes differ for {route}")
+        actual = sha256(body).hexdigest()
+        if actual != files[file]:
+            message = f"Served bytes differ for {route}"
+            if start is not None:
+                evidence = {
+                    "url": origin + route,
+                    "status": status,
+                    "observed_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+                    "elapsed_ms": round((monotonic() - start) * 1000),
+                    "expected_sha256": files[file],
+                    "actual_sha256": actual,
+                    "actual_bytes": len(body),
+                    "headers": {
+                        name: (headers.get(name) or "")[:256] for name in (
+                            "CF-Ray", "CF-Cache-Status", "Age", "ETag", "Last-Modified",
+                            "Cache-Control", "CDN-Cache-Control", "Cloudflare-CDN-Cache-Control",
+                            "Content-Type", "Content-Encoding", "Content-Length", "Vary",
+                        )
+                    },
+                }
+                message += ": " + json.dumps(evidence)
+            raise ValueError(message)
         require(not headers.get(REHEARSAL_HEADER), f"Rehearsal marker present for {route}")
         if file == "index.html":
             require(OFF_CONFIG in body and b'{"countryEligible":false}' in body,
